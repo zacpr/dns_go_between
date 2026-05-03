@@ -30,9 +30,6 @@
     <!-- Embed all cab files into the MSI so it ships as a single file. -->
     <MediaTemplate EmbedCab="yes" />
 
-    <!-- Default install directory property for WixUI_InstallDir -->
-    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
-
     <!-- Configuration Properties -->
     <Property Id="ALLOWEDZONES" Value="example.com" />
 
