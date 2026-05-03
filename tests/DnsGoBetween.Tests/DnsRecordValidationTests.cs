@@ -5,6 +5,7 @@ using DnsGoBetween.Infrastructure.Dns;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
+using Xunit;
 
 namespace DnsGoBetween.Tests;
 
@@ -136,6 +137,7 @@ public class DnsRecordValidationTests
     [InlineData("valid-host")]
     [InlineData("host.sub.domain")]
     [InlineData("@")]
+    [InlineData("*")]
     [InlineData("host123")]
     [InlineData("a")]
     public async Task AddRecord_ValidHostName_DoesNotThrow(string hostName)
@@ -156,6 +158,22 @@ public class DnsRecordValidationTests
             }));
 
         Assert.Null(ex);
+    }
+
+    [Fact]
+    public async Task AddRecord_WildcardCName_ThrowsArgumentException()
+    {
+        var executor = new Mock<IPowerShellDnsExecutor>();
+        var svc = CreateService(executor.Object);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            svc.AddRecordAsync(new AddRecordRequest
+            {
+                ZoneName = "example.local",
+                HostName = "*",
+                RecordType = DnsRecordType.CNAME,
+                Data = "target.example.local"
+            }));
     }
 
     [Theory]

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using DnsGoBetween.Api.Auth;
@@ -14,6 +15,8 @@ using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting.WindowsServices;
+
+[assembly: SupportedOSPlatform("windows")]
 
 var builder = WebApplication.CreateBuilder(args);
 

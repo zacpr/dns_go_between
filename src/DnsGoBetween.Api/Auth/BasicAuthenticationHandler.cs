@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Runtime.Versioning;
 using System.Text.Encodings.Web;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
@@ -8,6 +9,7 @@ using System.DirectoryServices.AccountManagement;
 
 namespace DnsGoBetween.Api.Auth;
 
+[SupportedOSPlatform("windows")]
 public sealed class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     public const string SchemeName = "Basic";

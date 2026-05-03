@@ -47,7 +47,7 @@ public sealed class DnsRecordService : IDnsRecordService
     {
         ValidateZone(request.ZoneName);
         ValidateRecordType(request.RecordType);
-        ValidateHostName(request.HostName);
+        ValidateHostName(request.HostName, allowWildcard: request.RecordType == DnsRecordType.A);
         ValidateRecordData(request.RecordType, request.Data);
         return _executor.AddResourceRecordAsync(request, ct);
     }
@@ -56,7 +56,7 @@ public sealed class DnsRecordService : IDnsRecordService
     {
         ValidateZone(request.ZoneName);
         ValidateRecordType(request.RecordType);
-        ValidateHostName(request.HostName);
+        ValidateHostName(request.HostName, allowWildcard: request.RecordType == DnsRecordType.A);
         return _executor.RemoveResourceRecordAsync(request, ct);
     }
 
@@ -78,12 +78,13 @@ public sealed class DnsRecordService : IDnsRecordService
             throw new NotSupportedException($"Record type '{typeName}' is not allowed.");
     }
 
-    private static void ValidateHostName(string hostName)
+    private static void ValidateHostName(string hostName, bool allowWildcard = false)
     {
         if (string.IsNullOrWhiteSpace(hostName))
             throw new ArgumentException("Host name must not be empty.", nameof(hostName));
 
         if (hostName == "@") return; // zone apex
+        if (allowWildcard && hostName == "*") return;
 
         foreach (var label in hostName.Split('.'))
         {

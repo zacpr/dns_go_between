@@ -130,6 +130,12 @@ Get-DnsServerResourceRecord -ZoneName {QuotePs(zone)}{nodeFilter} |
 
     public async Task AddResourceRecordAsync(AddRecordRequest request, CancellationToken ct = default)
     {
+        if (request.RecordType == DnsRecordType.A && request.HostName == "*")
+        {
+            await AddWildcardARecordWithDnsCmdAsync(request, ct);
+            return;
+        }
+
         var ttl = TimeSpan.FromSeconds(request.TimeToLive);
         var ttlPs = QuotePs(ttl.ToString("c"));
         var script = request.RecordType switch
@@ -160,6 +166,29 @@ Add-DnsServerResourceRecordPtr -ZoneName {QuotePs(request.ZoneName)} -Name {Quot
 ",
             _ => throw new NotSupportedException($"Record type {request.RecordType} is not supported in v1.")
         };
+
+        await InvokeWindowsPowerShellAsync(script, ct);
+    }
+
+    private async Task AddWildcardARecordWithDnsCmdAsync(AddRecordRequest request, CancellationToken ct)
+    {
+        if (request.TimeToLive != 3600)
+        {
+            _logger.LogWarning(
+                "Wildcard A record for zone {ZoneName} requested TTL {RequestedTtl}. dnscmd fallback will use the server or zone default TTL.",
+                request.ZoneName,
+                request.TimeToLive);
+        }
+
+        var script = $@"
+$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
+
+$output = & dnscmd.exe /recordadd {QuotePs(request.ZoneName)} '*' A {QuotePs(request.Data)} 2>&1
+if ($LASTEXITCODE -ne 0) {{
+    throw ((@($output) -join [Environment]::NewLine).Trim())
+}}
+";
 
         await InvokeWindowsPowerShellAsync(script, ct);
     }

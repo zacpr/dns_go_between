@@ -34,9 +34,8 @@ else if (_error is not null)
         <input @ref="_searchInput" 
                @bind="_searchQuery"
                @oninput="@((ChangeEventArgs e) => { _searchQuery = e.Value?.ToString() ?? string.Empty; UpdateSearchResults(); })"
-               @onkeydown="HandleSearchKeydown"
                type="text"
-               placeholder="🔍 Search zones, hosts, records (Ctrl+F)…"
+               placeholder="🔍 Search zones, hosts, records…"
                class="search-input" />
         @if (!string.IsNullOrEmpty(_searchQuery))
         {
@@ -604,27 +603,6 @@ else if (_error is not null)
         }
 
         _searchResults = zoneCount + hostCount + recordCount;
-    }
-
-    private async Task HandleSearchKeydownAsync(KeyboardEventArgs e)
-    {
-        if (e.CtrlKey && e.Code == "KeyF")
-        {
-            e.PreventDefault();
-            if (_searchInput.Context != null)
-            {
-                await _searchInput.FocusAsync();
-            }
-        }
-    }
-
-    private void HandleSearchKeydown(KeyboardEventArgs e)
-    {
-        // Prevent default browser search for Ctrl+F
-        if (e.CtrlKey && e.Code == "KeyF")
-        {
-            e.PreventDefault();
-        }
     }
 
     private async Task ClearSearchAsync()

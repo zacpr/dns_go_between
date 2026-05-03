@@ -15,10 +15,14 @@
     points.
   -->
   <PropertyGroup>
-    <BaseIntermediateOutputPath>$(TEMP)\DnsGoBetween.Build\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
+    <DnsGoBetweenTempRoot Condition="'$(DnsGoBetweenTempRoot)' == '' and '$(TEMP)' != ''">$(TEMP)</DnsGoBetweenTempRoot>
+    <DnsGoBetweenTempRoot Condition="'$(DnsGoBetweenTempRoot)' == '' and '$(TMPDIR)' != ''">$(TMPDIR)</DnsGoBetweenTempRoot>
+    <DnsGoBetweenTempRoot Condition="'$(DnsGoBetweenTempRoot)' == '' and '$(TMP)' != ''">$(TMP)</DnsGoBetweenTempRoot>
+    <DnsGoBetweenTempRoot Condition="'$(DnsGoBetweenTempRoot)' == ''">$(MSBuildThisFileDirectory)..\build-temp</DnsGoBetweenTempRoot>
+    <BaseIntermediateOutputPath>$([MSBuild]::EnsureTrailingSlash('$(DnsGoBetweenTempRoot)'))DnsGoBetween.Build/$(MSBuildProjectName)/obj/</BaseIntermediateOutputPath>
     <!-- Keep the original obj\ tree excluded even though BaseIntermediateOutputPath moved -->
     <DefaultItemExcludes>$(DefaultItemExcludes);obj\**</DefaultItemExcludes>
     <!-- Also redirect bin/ output so locked bin/ files don't block the build -->
-    <BaseOutputPath>$(TEMP)\DnsGoBetween.Build\$(MSBuildProjectName)\bin\</BaseOutputPath>
+    <BaseOutputPath>$([MSBuild]::EnsureTrailingSlash('$(DnsGoBetweenTempRoot)'))DnsGoBetween.Build/$(MSBuildProjectName)/bin/</BaseOutputPath>
   </PropertyGroup>
 </Project>
