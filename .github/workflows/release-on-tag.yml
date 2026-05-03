@@ -21,6 +21,9 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      TEMP: ${{ runner.temp }}
+      TMP: ${{ runner.temp }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
