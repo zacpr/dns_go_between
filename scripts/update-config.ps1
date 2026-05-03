@@ -38,6 +38,52 @@ function Write-Log($msg) {
     }
 }
 
+function Get-BestStoreCertificateThumbprint {
+    try {
+        $machine = $env:COMPUTERNAME
+        $domain = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().DomainName
+        $fqdn = if ([string]::IsNullOrWhiteSpace($domain)) { $machine } else { "$machine.$domain" }
+
+        $candidates = Get-ChildItem Cert:\LocalMachine\My -ErrorAction Stop |
+            Where-Object {
+                $_.HasPrivateKey -and
+                $_.NotAfter -gt (Get-Date) -and
+                (
+                    $null -eq $_.EnhancedKeyUsageList -or
+                    $_.EnhancedKeyUsageList.Count -eq 0 -or
+                    ($_.EnhancedKeyUsageList | Where-Object { $_.FriendlyName -eq 'Server Authentication' -or $_.ObjectId -eq '1.3.6.1.5.5.7.3.1' }).Count -gt 0
+                )
+            }
+
+        if (-not $candidates) {
+            return $null
+        }
+
+        $exact = $candidates |
+            Where-Object {
+                $_.Subject -match "CN=$([regex]::Escape($fqdn))(,|$)" -or
+                $_.Subject -match "CN=$([regex]::Escape($machine))(,|$)"
+            } |
+            Sort-Object NotAfter -Descending |
+            Select-Object -First 1
+
+        if ($exact) {
+            return ($exact.Thumbprint -replace '\s', '')
+        }
+
+        $newest = $candidates | Sort-Object NotAfter -Descending | Select-Object -First 1
+        if ($newest) {
+            return ($newest.Thumbprint -replace '\s', '')
+        }
+
+        return $null
+    }
+    catch {
+        Write-Log "Certificate auto-discovery failed: $($_.Exception.Message)"
+        return $null
+    }
+}
+
 if (-not (Test-Path $InstallDir)) {
     $fallbackDir = Join-Path $env:ProgramData "DnsGoBetween"
     try {
@@ -113,18 +159,53 @@ try {
 
     switch ($certSourceNormalized) {
         "PFX" {
-            $json.Tls.Certificate.PfxPath = $CertPfxPath.Trim()
-            $json.Tls.Certificate.PfxPassword = $CertPfxPassword
-            $json.Tls.Certificate.Thumbprint = ""
-            Write-Log "Configured TLS certificate source: PFX"
+            $trimmedPfxPath = $CertPfxPath.Trim()
+            if (-not [string]::IsNullOrWhiteSpace($trimmedPfxPath) -and (Test-Path $trimmedPfxPath)) {
+                $json.Tls.Certificate.PfxPath = $trimmedPfxPath
+                $json.Tls.Certificate.PfxPassword = $CertPfxPassword
+                $json.Tls.Certificate.Thumbprint = ""
+                Write-Log "Configured TLS certificate source: PFX"
+            }
+            else {
+                Write-Log "PFX mode selected but file path is missing or not found. Falling back to store lookup."
+                $fallbackThumbprint = Get-BestStoreCertificateThumbprint
+                $json.Tls.Certificate.PfxPath = ""
+                $json.Tls.Certificate.PfxPassword = ""
+                $json.Tls.Certificate.Thumbprint = if ($fallbackThumbprint) { $fallbackThumbprint } else { "" }
+                if ($fallbackThumbprint) {
+                    Write-Log "Fallback store certificate selected by thumbprint."
+                }
+                else {
+                    Write-Log "No fallback store certificate found. Service will run HTTP on primary port."
+                }
+            }
         }
         default {
-            $json.Tls.Certificate.Thumbprint = $CertThumbprint.Replace(" ", "")
+            $thumbprint = $CertThumbprint.Replace(" ", "")
+            if ([string]::IsNullOrWhiteSpace($thumbprint)) {
+                $thumbprint = Get-BestStoreCertificateThumbprint
+                if ($thumbprint) {
+                    Write-Log "Auto-selected LocalMachine\\My certificate by thumbprint for STORE mode."
+                }
+                else {
+                    Write-Log "STORE mode selected with no thumbprint and no suitable auto-selected certificate."
+                }
+            }
+
+            $json.Tls.Certificate.Thumbprint = if ($thumbprint) { $thumbprint } else { "" }
             $json.Tls.Certificate.PfxPath = ""
             $json.Tls.Certificate.PfxPassword = ""
             Write-Log "Configured TLS certificate source: STORE"
         }
     }
+
+    $hasTlsMaterial =
+        (-not [string]::IsNullOrWhiteSpace($json.Tls.Certificate.Thumbprint)) -or
+        (-not [string]::IsNullOrWhiteSpace($json.Tls.Certificate.PfxPath))
+
+    # Redirect only when concrete TLS material is configured.
+    $json.Tls.RedirectHttpToHttps = $hasTlsMaterial
+    Write-Log "RedirectHttpToHttps set to: $($json.Tls.RedirectHttpToHttps)"
 
     $json | ConvertTo-Json -Depth 20 | Set-Content $configPath -Encoding UTF8 -Force
     Write-Log "Successfully updated appsettings.json"
