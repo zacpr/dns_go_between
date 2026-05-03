@@ -108,6 +108,8 @@ builder.Services.AddScoped<IDnsRecordService, DnsRecordService>();
 builder.Services.AddSingleton<IAuditLogger, StructuredAuditLogger>();
 builder.Services.AddSingleton<FileIpAccessPolicy>();
 builder.Services.AddSingleton<BasicAuthenticationAttemptLimiter>();
+builder.Services.AddSingleton<DnsReadinessState>();
+builder.Services.AddHostedService<DnsReadinessProbeService>();
 
 // ── Web / Blazor ──────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
@@ -139,7 +141,7 @@ app.Logger.LogInformation(
     DescribeCertificateSource(tlsOptions, certificate));
 
 app.Logger.LogInformation(
-    "Health endpoint access: /health/* restricted to loopback callers.");
+    "Health endpoint access: /health/* allows anonymous remote callers.");
 
 if (app.Environment.IsDevelopment())
 {
@@ -151,18 +153,6 @@ if (tlsOptions.RedirectHttpToHttps)
 {
     app.UseHttpsRedirection();
 }
-
-app.Use(async (context, next) =>
-{
-    if (context.Request.Path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase) &&
-        !IsLoopbackRequest(context.Connection.RemoteIpAddress))
-    {
-        context.Response.StatusCode = StatusCodes.Status404NotFound;
-        return;
-    }
-
-    await next();
-});
 
 app.Use(async (context, next) =>
 {
@@ -318,22 +308,6 @@ static bool SubjectMatches(X509Certificate2 cert, string expected)
         || string.Equals(simpleName, expected, StringComparison.OrdinalIgnoreCase)
         || cert.Subject.Contains($"CN={expected}", StringComparison.OrdinalIgnoreCase)
         || cert.Subject.Contains(expected, StringComparison.OrdinalIgnoreCase);
-}
-
-static bool IsLoopbackRequest(IPAddress? address)
-{
-    if (address is null)
-    {
-        return false;
-    }
-
-    if (IPAddress.IsLoopback(address))
-    {
-        return true;
-    }
-
-    return address.Equals(IPAddress.IPv6Loopback) ||
-           address.IsIPv4MappedToIPv6 && IPAddress.IsLoopback(address.MapToIPv4());
 }
 
 static Task WriteMinimalHealthResponseAsync(HttpContext context, HealthReport report)
