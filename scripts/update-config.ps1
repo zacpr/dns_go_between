@@ -10,7 +10,19 @@ param(
     [string]$AllowedZonesString,
 
     [Parameter(Mandatory=$true)]
-    [string]$HttpsPort
+    [string]$HttpsPort,
+
+    [Parameter(Mandatory=$false)]
+    [string]$CertSource = "STORE",
+
+    [Parameter(Mandatory=$false)]
+    [string]$CertThumbprint = "",
+
+    [Parameter(Mandatory=$false)]
+    [string]$CertPfxPath = "",
+
+    [Parameter(Mandatory=$false)]
+    [string]$CertPfxPassword = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,6 +54,10 @@ try {
     Write-Log "InstallDir: $InstallDir"
     Write-Log "AllowedZones: $AllowedZonesString"
     Write-Log "HttpsPort: $HttpsPort"
+    Write-Log "CertSource: $CertSource"
+    Write-Log "CertThumbprintProvided: $([string]::IsNullOrWhiteSpace($CertThumbprint) -eq $false)"
+    Write-Log "CertPfxPathProvided: $([string]::IsNullOrWhiteSpace($CertPfxPath) -eq $false)"
+    Write-Log "CertPfxPasswordProvided: $([string]::IsNullOrWhiteSpace($CertPfxPassword) -eq $false)"
 
     $port = 0
     if (-not [int]::TryParse($HttpsPort, [ref]$port) -or $port -lt 1 -or $port -gt 65535) {
@@ -75,9 +91,40 @@ try {
         $json | Add-Member -MemberType NoteProperty -Name "Tls" -Value ([pscustomobject]@{})
     }
 
+    if ($null -eq $json.Tls.Certificate) {
+        $json.Tls | Add-Member -MemberType NoteProperty -Name "Certificate" -Value ([pscustomobject]@{})
+    }
+
+    if ($null -eq $json.Tls.Certificate.StoreName) { $json.Tls.Certificate.StoreName = "My" }
+    if ($null -eq $json.Tls.Certificate.StoreLocation) { $json.Tls.Certificate.StoreLocation = "LocalMachine" }
+    if ($null -eq $json.Tls.Certificate.Subject) { $json.Tls.Certificate.Subject = "" }
+
     $json.Tls.HttpsPort = $port
     if ($null -eq $json.Tls.EnableHttp) { $json.Tls.EnableHttp = $false }
     if ($null -eq $json.Tls.HttpPort) { $json.Tls.HttpPort = 0 }
+    if ($null -eq $json.Tls.RedirectHttpToHttps) { $json.Tls.RedirectHttpToHttps = $false }
+
+    $certSourceNormalized = if ([string]::IsNullOrWhiteSpace($CertSource)) {
+        "STORE"
+    }
+    else {
+        $CertSource.Trim().ToUpperInvariant()
+    }
+
+    switch ($certSourceNormalized) {
+        "PFX" {
+            $json.Tls.Certificate.PfxPath = $CertPfxPath.Trim()
+            $json.Tls.Certificate.PfxPassword = $CertPfxPassword
+            $json.Tls.Certificate.Thumbprint = ""
+            Write-Log "Configured TLS certificate source: PFX"
+        }
+        default {
+            $json.Tls.Certificate.Thumbprint = $CertThumbprint.Replace(" ", "")
+            $json.Tls.Certificate.PfxPath = ""
+            $json.Tls.Certificate.PfxPassword = ""
+            Write-Log "Configured TLS certificate source: STORE"
+        }
+    }
 
     $json | ConvertTo-Json -Depth 20 | Set-Content $configPath -Encoding UTF8 -Force
     Write-Log "Successfully updated appsettings.json"
