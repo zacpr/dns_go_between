@@ -11,7 +11,12 @@
 @inject IJSRuntime JS
 
 <PageTitle>DNS Manager</PageTitle>
-<h1>DNS Record Manager</h1>
+<div class="dns-page @(_isDarkMode ? "theme-dark" : "theme-light")">
+    <div class="page-header">
+        <h1>DNS Record Manager</h1>
+        <div class="status-indicator">@_zones.Count zone(s)</div>
+        <button class="btn-theme-toggle" @onclick="ToggleTheme">@(_isDarkMode ? "Light" : "Dark") mode</button>
+    </div>
 
 @if (_loading)
 {
@@ -93,6 +98,7 @@ else if (_error is not null)
                                             continue;
 
                                         <div class="record-node indent2 @(recordMatches ? "search-highlight" : "")">
+                                            <span class="record-icon">@GetRecordTypeIcon(rec.RecordType)</span>
                                             <span class="badge-type @GetRecordTypeCssClass(rec.RecordType)">@rec.RecordType</span>
                                             <span class="record-data">@rec.Data</span>
                                             <button class="btn-copy" title="Copy record data" @onclick="() => CopyToClipboardAsync(rec.Data)">📋</button>
@@ -251,12 +257,14 @@ else if (_error is not null)
         </div>
     }
 </div>
+</div>
 
 @code {
     private IReadOnlyList<DnsZone> _zones = [];
     private bool _loading = true;
     private string? _error;
     private bool _isAdmin;
+    private bool _isDarkMode;
 
     private readonly HashSet<string> _expandedZones = new();
     private readonly HashSet<string> _expandedHosts = new();
@@ -401,7 +409,7 @@ else if (_error is not null)
         catch (Exception ex)
         {
             _modalError = ex.Message;
-                    ShowErrorToast($"Failed to create record: {ex.Message}");
+            ShowErrorToast($"Failed to create record: {ex.Message}");
         }
         finally
         {
@@ -418,6 +426,8 @@ else if (_error is not null)
     private async Task ExecuteDeleteAsync()
     {
         if (_deleteTarget is null) return;
+        var deletedHost = _deleteTarget.HostName;
+        var deletedType = _deleteTarget.RecordType;
         _modalError = null;
         _isDeleting = true;
         StateHasChanged();
@@ -438,12 +448,12 @@ else if (_error is not null)
             _zoneRecords[zone] = await DnsService.ListRecordsAsync(zone);
 
             _deleteTarget = null;
-                    ShowSuccessToast($"Record deleted: {_deleteTarget?.HostName} ({_deleteTarget?.RecordType})");
-                    ShowErrorToast($"Failed to delete record: {ex.Message}");
+            ShowSuccessToast($"Record deleted: {deletedHost} ({deletedType})");
         }
         catch (Exception ex)
         {
             _modalError = ex.Message;
+            ShowErrorToast($"Failed to delete record: {ex.Message}");
         }
         finally
         {
@@ -487,6 +497,23 @@ else if (_error is not null)
             DnsRecordType.PTR => "badge-type-ptr",
             _ => "badge-type-a"
         };
+    }
+
+    private string GetRecordTypeIcon(DnsRecordType type)
+    {
+        return type switch
+        {
+            DnsRecordType.A => "A4",
+            DnsRecordType.AAAA => "A6",
+            DnsRecordType.CNAME => "CN",
+            DnsRecordType.PTR => "PT",
+            _ => "--"
+        };
+    }
+
+    private void ToggleTheme()
+    {
+        _isDarkMode = !_isDarkMode;
     }
 
     private bool IsValidHostname(string hostname)
@@ -634,9 +661,9 @@ else if (_error is not null)
                 finally
                 {
                     _zoneLoading.Remove(zoneName);
-                            await PersistTreeStateAsync();
                 }
             }
+            await PersistTreeStateAsync();
             return;
         }
 
@@ -644,12 +671,15 @@ else if (_error is not null)
         if (!_expandedZones.Add(zoneName))
         {
             _expandedZones.Remove(zoneName);
-                        await PersistTreeStateAsync();
+            await PersistTreeStateAsync();
             return;
         }
 
-        if (_zoneRecords.ContainsKey(zoneName)) return;
-    await PersistTreeStateAsync();
+        if (_zoneRecords.ContainsKey(zoneName))
+        {
+            await PersistTreeStateAsync();
+            return;
+        }
 
         _zoneLoading.Add(zoneName);
         StateHasChanged();
@@ -667,18 +697,19 @@ else if (_error is not null)
         {
             _zoneLoading.Remove(zoneName);
         }
+
+        await PersistTreeStateAsync();
     }
 
     // Override ToggleHost to support search auto-expand
-    private void ToggleHost(string hostKey, bool hasMatchingRecords = false)
-        private async Task ToggleHostAsync(string hostKey, bool hasMatchingRecords = false)
+    private async Task ToggleHostAsync(string hostKey, bool hasMatchingRecords = false)
     {
         // If searching and host has matches, auto-expand
         if (!string.IsNullOrEmpty(_searchQuery) && hasMatchingRecords && !_expandedHosts.Contains(hostKey))
         {
             _expandedHosts.Add(hostKey);
-                        await PersistTreeStateAsync();
             UpdateSearchResults();
+            await PersistTreeStateAsync();
             return;
         }
 
@@ -686,8 +717,9 @@ else if (_error is not null)
         if (!_expandedHosts.Add(hostKey))
         {
             _expandedHosts.Remove(hostKey);
-            await PersistTreeStateAsync();
         }
+
+        await PersistTreeStateAsync();
     }
 
     // ── Toast Methods ────────────────────────────────────────────────────────

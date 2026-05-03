@@ -42,6 +42,44 @@ body {
 
 h1 { font-size: 1.4em; margin-bottom: 20px; color: #0078d4; }
 
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.page-header h1 {
+    margin: 0;
+    flex: 1;
+}
+
+.status-indicator {
+    font-size: 0.82em;
+    color: #0f5132;
+    background: #d1e7dd;
+    border: 1px solid #badbcc;
+    border-radius: 999px;
+    padding: 4px 10px;
+    white-space: nowrap;
+}
+
+.btn-theme-toggle {
+    border: 1px solid #ced4da;
+    background: #ffffff;
+    color: #212529;
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.15s ease;
+}
+
+.btn-theme-toggle:hover {
+    border-color: #0078d4;
+    color: #0078d4;
+}
+
 /* ─── Search Bar ──────────────────────────────────────────────────────────── */
 .search-bar {
     display: flex;
@@ -192,33 +230,32 @@ h1 { font-size: 1.4em; margin-bottom: 20px; color: #0078d4; }
 }
 
 .btn-close-toast:hover {
-    /* ─── Breadcrumbs ─────────────────────────────────────────────────────────── */
-    .breadcrumb {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 16px;
-        padding: 8px 12px;
-        background: #f8f9fa;
-        border-radius: 4px;
-        border-left: 3px solid #0078d4;
-        font-size: 13px;
-        color: #666;
-    }
-
-    .breadcrumb-item {
-        font-weight: 500;
-        color: #0078d4;
-        word-break: break-word;
-    }
-
-    .breadcrumb-separator {
-        color: #999;
-        margin: 0 2px;
-    }
-
-    /* ─── DNS Tree ────────────────────────────────────────────────────────────── */
     opacity: 1;
+}
+
+/* ─── Breadcrumbs ─────────────────────────────────────────────────────────── */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #0078d4;
+    font-size: 13px;
+    color: #666;
+}
+
+.breadcrumb-item {
+    font-weight: 500;
+    color: #0078d4;
+    word-break: break-word;
+}
+
+.breadcrumb-separator {
+    color: #999;
+    margin: 0 2px;
 }
 
 /* ─── DNS Tree ────────────────────────────────────────────────────────────── */
@@ -249,6 +286,67 @@ h1 { font-size: 1.4em; margin-bottom: 20px; color: #0078d4; }
     align-items: center;
     gap: 10px;
     padding: 3px 0;
+    animation: fadeIn 0.15s ease;
+}
+
+.record-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 20px;
+    font-size: 0.68em;
+    font-weight: 700;
+    color: #475467;
+    background: #eef2f7;
+    border: 1px solid #d0d7e2;
+    border-radius: 999px;
+}
+
+.zone-node,
+.host-node {
+    transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.zone-node:hover,
+.host-node:hover {
+    transform: translateX(1px);
+}
+
+.dns-page.theme-dark {
+    color: #e5e7eb;
+}
+
+.dns-page.theme-dark .search-bar,
+.dns-page.theme-dark .dns-tree,
+.dns-page.theme-dark .modal-box {
+    background: #1f2937;
+    border-color: #374151;
+    color: #e5e7eb;
+}
+
+.dns-page.theme-dark .search-input,
+.dns-page.theme-dark .record-data,
+.dns-page.theme-dark .confirm-table td {
+    color: #e5e7eb;
+}
+
+.dns-page.theme-dark .search-results,
+.dns-page.theme-dark .breadcrumb {
+    background: #111827;
+    color: #cbd5e1;
+}
+
+.dns-page.theme-dark .btn-theme-toggle {
+    background: #111827;
+    border-color: #4b5563;
+    color: #e5e7eb;
+}
+
+.dns-page.theme-dark .zone-toggle:hover,
+.dns-page.theme-dark .host-toggle:hover {
+    background: #374151;
+    color: #dbeafe;
 }
 
 .badge {
