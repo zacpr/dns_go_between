@@ -19,14 +19,16 @@ public sealed class StructuredAuditLogger : IAuditLogger
         string? correlationId = null)
     {
         var cid = correlationId ?? Guid.NewGuid().ToString("N");
+        var normalizedTarget = string.IsNullOrWhiteSpace(target) ? "unspecified" : target;
+        var normalizedError = string.IsNullOrWhiteSpace(errorMessage) ? "None" : errorMessage;
 
         if (success)
             _logger.LogInformation(
                 "[AUDIT] CorrelationId={CorrelationId} User={User} Action={Action} Target={Target} Outcome=Success",
-                cid, user, action, target);
+                cid, user, action, normalizedTarget);
         else
             _logger.LogWarning(
-                "[AUDIT] CorrelationId={CorrelationId} User={User} Action={Action} Target={Target} Outcome=Failure Error={Error}",
-                cid, user, action, target, errorMessage);
+                "[AUDIT] CorrelationId={CorrelationId} User={User} Action={Action} Target={Target} Outcome=Failure FailureType={FailureType}",
+                cid, user, action, normalizedTarget, normalizedError);
     }
 }

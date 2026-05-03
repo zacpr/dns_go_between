@@ -67,7 +67,7 @@
     <CustomAction
       Id="AddFirewallApi"
       Directory="SystemFolder"
-      ExeCommand='netsh advfirewall firewall add rule name="DNS Go-Between API" dir=in action=allow protocol=TCP localport=[PORT] profile=any'
+      ExeCommand='netsh advfirewall firewall add rule name="DNS Go-Between API" dir=in action=allow protocol=TCP localport=[PORT] profile=domain,private remoteip=localsubnet'
       Execute="deferred"
       Impersonate="no"
       Return="ignore" />

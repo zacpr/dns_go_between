@@ -13,6 +13,7 @@
     <PackageReference Include="FluentAssertions" Version="6.12.1" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\DnsGoBetween.Api\DnsGoBetween.Api.csproj" />
     <ProjectReference Include="..\..\src\DnsGoBetween.Core\DnsGoBetween.Core.csproj" />
     <ProjectReference Include="..\..\src\DnsGoBetween.Infrastructure\DnsGoBetween.Infrastructure.csproj" />
   </ItemGroup>

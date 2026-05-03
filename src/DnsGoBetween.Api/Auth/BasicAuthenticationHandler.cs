@@ -6,6 +6,8 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using System.DirectoryServices.AccountManagement;
+using DnsGoBetween.Api.Security;
+using DnsGoBetween.Core.Configuration;
 
 namespace DnsGoBetween.Api.Auth;
 
@@ -13,13 +15,19 @@ namespace DnsGoBetween.Api.Auth;
 public sealed class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     public const string SchemeName = "Basic";
+    private readonly AuthOptions _authOptions;
+    private readonly BasicAuthenticationAttemptLimiter _attemptLimiter;
 
     public BasicAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
-        UrlEncoder encoder)
+        UrlEncoder encoder,
+        IOptions<AuthOptions> authOptions,
+        BasicAuthenticationAttemptLimiter attemptLimiter)
         : base(options, logger, encoder)
     {
+        _authOptions = authOptions.Value;
+        _attemptLimiter = attemptLimiter;
     }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -33,25 +41,52 @@ public sealed class BasicAuthenticationHandler : AuthenticationHandler<Authentic
 
         try
         {
+            if (!_authOptions.EnableBasicAuthentication)
+                return Task.FromResult(AuthenticateResult.Fail("Basic authentication is disabled."));
+
+            if (_authOptions.RequireHttpsForBasicAuthentication && !Request.IsHttps)
+                return Task.FromResult(AuthenticateResult.Fail("Basic authentication requires HTTPS."));
+
+            var remoteAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            if (_attemptLimiter.IsLockedOut(remoteAddress, out var retryAfter))
+            {
+                Response.Headers.RetryAfter = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds)).ToString();
+                return Task.FromResult(AuthenticateResult.Fail("Too many failed authentication attempts."));
+            }
+
             var parameter = AuthenticationHeaderValue.Parse(authorization).Parameter;
             if (string.IsNullOrWhiteSpace(parameter))
+            {
+                _attemptLimiter.RegisterFailure(remoteAddress);
                 return Task.FromResult(AuthenticateResult.Fail("Missing Basic credentials."));
+            }
 
             var credentialBytes = Convert.FromBase64String(parameter);
             var credentials = Encoding.UTF8.GetString(credentialBytes);
             var separator = credentials.IndexOf(':');
             if (separator <= 0)
+            {
+                _attemptLimiter.RegisterFailure(remoteAddress);
                 return Task.FromResult(AuthenticateResult.Fail("Invalid Basic credentials format."));
+            }
 
             var userName = credentials[..separator];
             var password = credentials[(separator + 1)..];
 
             if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrEmpty(password))
+            {
+                _attemptLimiter.RegisterFailure(remoteAddress);
                 return Task.FromResult(AuthenticateResult.Fail("Username and password are required."));
+            }
 
             var principalData = ValidateCredentials(userName, password);
             if (principalData is null)
+            {
+                _attemptLimiter.RegisterFailure(remoteAddress);
                 return Task.FromResult(AuthenticateResult.Fail("Invalid username or password."));
+            }
+
+            _attemptLimiter.RegisterSuccess(remoteAddress);
 
             var claims = new List<Claim>
             {
@@ -68,10 +103,14 @@ public sealed class BasicAuthenticationHandler : AuthenticationHandler<Authentic
         }
         catch (FormatException)
         {
+            var remoteAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            _attemptLimiter.RegisterFailure(remoteAddress);
             return Task.FromResult(AuthenticateResult.Fail("Invalid Basic credentials encoding."));
         }
         catch (Exception ex)
         {
+            var remoteAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            _attemptLimiter.RegisterFailure(remoteAddress);
             Logger.LogWarning(ex, "Basic authentication failed.");
             return Task.FromResult(AuthenticateResult.Fail("Authentication failed."));
         }

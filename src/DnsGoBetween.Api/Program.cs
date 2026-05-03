@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting.WindowsServices;
 
 [assembly: SupportedOSPlatform("windows")]
@@ -25,9 +26,12 @@ builder.Host.UseWindowsService();
 // ── Options ──────────────────────────────────────────────────────────────────
 builder.Services.Configure<DnsOptions>(
     builder.Configuration.GetSection(DnsOptions.SectionName));
+builder.Services.Configure<AuthOptions>(
+    builder.Configuration.GetSection(AuthOptions.SectionName));
 builder.Services.Configure<TlsOptions>(
     builder.Configuration.GetSection(TlsOptions.SectionName));
 
+var authOptions = builder.Configuration.GetSection(AuthOptions.SectionName).Get<AuthOptions>() ?? new AuthOptions();
 var tlsOptions = builder.Configuration.GetSection(TlsOptions.SectionName).Get<TlsOptions>() ?? new TlsOptions();
 var certificate = ResolveServerCertificate(tlsOptions);
 
@@ -65,7 +69,8 @@ builder.Services.AddAuthentication(options =>
             var authorization = context.Request.Headers.Authorization.ToString();
             if (!string.IsNullOrWhiteSpace(authorization))
             {
-                if (authorization.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
+                if (authOptions.EnableBasicAuthentication &&
+                    authorization.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
                     return BasicAuthenticationHandler.SchemeName;
 
                 if (authorization.StartsWith("Negotiate ", StringComparison.OrdinalIgnoreCase))
@@ -96,6 +101,7 @@ builder.Services.AddScoped<IPowerShellDnsExecutor, LocalPowerShellDnsExecutor>()
 builder.Services.AddScoped<IDnsRecordService, DnsRecordService>();
 builder.Services.AddSingleton<IAuditLogger, StructuredAuditLogger>();
 builder.Services.AddSingleton<FileIpAccessPolicy>();
+builder.Services.AddSingleton<BasicAuthenticationAttemptLimiter>();
 
 // ── Web / Blazor ──────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
@@ -123,6 +129,18 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase) &&
+        !IsLoopbackRequest(context.Connection.RemoteIpAddress))
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+
+    await next();
+});
 
 app.Use(async (context, next) =>
 {
@@ -154,11 +172,13 @@ app.MapRazorComponents<DnsGoBetween.Api.Components.App>()
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
-    Predicate = _ => false
+    Predicate = _ => false,
+    ResponseWriter = WriteMinimalHealthResponseAsync
 }).AllowAnonymous();
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
 {
-    Predicate = check => check.Tags.Contains("ready")
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = WriteMinimalHealthResponseAsync
 }).AllowAnonymous();
 
 app.Run();
@@ -271,6 +291,31 @@ static bool SubjectMatches(X509Certificate2 cert, string expected)
         || string.Equals(simpleName, expected, StringComparison.OrdinalIgnoreCase)
         || cert.Subject.Contains($"CN={expected}", StringComparison.OrdinalIgnoreCase)
         || cert.Subject.Contains(expected, StringComparison.OrdinalIgnoreCase);
+}
+
+static bool IsLoopbackRequest(IPAddress? address)
+{
+    if (address is null)
+    {
+        return false;
+    }
+
+    if (IPAddress.IsLoopback(address))
+    {
+        return true;
+    }
+
+    return address.Equals(IPAddress.IPv6Loopback) ||
+           address.IsIPv4MappedToIPv6 && IPAddress.IsLoopback(address.MapToIPv4());
+}
+
+static Task WriteMinimalHealthResponseAsync(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json";
+    return context.Response.WriteAsJsonAsync(new
+    {
+        status = report.Status.ToString()
+    });
 }
 
 static bool HasServerAuthenticationEku(X509Certificate2 cert)

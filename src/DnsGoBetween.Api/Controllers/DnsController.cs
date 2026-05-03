@@ -44,10 +44,13 @@ public sealed class DnsController : ControllerBase
             var records = await _dns.ListRecordsAsync(zone, node, ct);
             return Ok(records);
         }
-        catch (UnauthorizedAccessException ex)
+        catch (UnauthorizedAccessException)
         {
             return StatusCode(StatusCodes.Status403Forbidden,
-                new ProblemDetails { Detail = ex.Message });
+                CreateSafeProblem(
+                    StatusCodes.Status403Forbidden,
+                    "Access denied",
+                    "The requested zone is not allowed."));
         }
     }
 
@@ -59,7 +62,7 @@ public sealed class DnsController : ControllerBase
     {
         var correlationId = HttpContext.TraceIdentifier;
         var user = User.Identity?.Name ?? "unknown";
-        var target = $"{request.RecordType}:{request.HostName}@{request.ZoneName}={request.Data}";
+        var target = BuildAuditTarget(request.ZoneName, request.HostName, request.RecordType.ToString());
 
         try
         {
@@ -69,20 +72,31 @@ public sealed class DnsController : ControllerBase
         }
         catch (UnauthorizedAccessException ex)
         {
-            _audit.LogWrite(user, "AddRecord", target, success: false, ex.Message, correlationId);
-            return StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails { Detail = ex.Message });
+            _audit.LogWrite(user, "AddRecord", target, success: false, ex.GetType().Name, correlationId);
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                CreateSafeProblem(
+                    StatusCodes.Status403Forbidden,
+                    "Access denied",
+                    "You are not allowed to modify this zone."));
         }
         catch (Exception ex) when (ex is NotSupportedException or ArgumentException)
         {
-            _audit.LogWrite(user, "AddRecord", target, success: false, ex.Message, correlationId);
-            return BadRequest(new ProblemDetails { Detail = ex.Message });
+            _audit.LogWrite(user, "AddRecord", target, success: false, ex.GetType().Name, correlationId);
+            return BadRequest(CreateSafeProblem(
+                StatusCodes.Status400BadRequest,
+                "Invalid request",
+                "The record request is invalid."));
         }
         catch (Exception ex)
         {
-            _audit.LogWrite(user, "AddRecord", target, success: false, ex.Message, correlationId);
+            _audit.LogWrite(user, "AddRecord", target, success: false, ex.GetType().Name, correlationId);
             _logger.LogError(ex, "Unexpected error adding record {Target}", target);
             return StatusCode(StatusCodes.Status500InternalServerError,
-                new ProblemDetails { Detail = "An unexpected error occurred." });
+                CreateSafeProblem(
+                    StatusCodes.Status500InternalServerError,
+                    "Server error",
+                    "An unexpected error occurred."));
         }
     }
 
@@ -94,7 +108,7 @@ public sealed class DnsController : ControllerBase
     {
         var correlationId = HttpContext.TraceIdentifier;
         var user = User.Identity?.Name ?? "unknown";
-        var target = $"{request.RecordType}:{request.HostName}@{request.ZoneName}={request.Data}";
+        var target = BuildAuditTarget(request.ZoneName, request.HostName, request.RecordType.ToString());
 
         try
         {
@@ -104,25 +118,55 @@ public sealed class DnsController : ControllerBase
         }
         catch (UnauthorizedAccessException ex)
         {
-            _audit.LogWrite(user, "DeleteRecord", target, success: false, ex.Message, correlationId);
-            return StatusCode(StatusCodes.Status403Forbidden, new ProblemDetails { Detail = ex.Message });
+            _audit.LogWrite(user, "DeleteRecord", target, success: false, ex.GetType().Name, correlationId);
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                CreateSafeProblem(
+                    StatusCodes.Status403Forbidden,
+                    "Access denied",
+                    "You are not allowed to modify this zone."));
         }
         catch (InvalidOperationException ex)
         {
-            _audit.LogWrite(user, "DeleteRecord", target, success: false, ex.Message, correlationId);
-            return NotFound(new ProblemDetails { Detail = ex.Message });
+            _audit.LogWrite(user, "DeleteRecord", target, success: false, ex.GetType().Name, correlationId);
+            return NotFound(CreateSafeProblem(
+                StatusCodes.Status404NotFound,
+                "Record not found",
+                "The record could not be found."));
         }
         catch (ArgumentException ex)
         {
-            _audit.LogWrite(user, "DeleteRecord", target, success: false, ex.Message, correlationId);
-            return BadRequest(new ProblemDetails { Detail = ex.Message });
+            _audit.LogWrite(user, "DeleteRecord", target, success: false, ex.GetType().Name, correlationId);
+            return BadRequest(CreateSafeProblem(
+                StatusCodes.Status400BadRequest,
+                "Invalid request",
+                "The record request is invalid."));
         }
         catch (Exception ex)
         {
-            _audit.LogWrite(user, "DeleteRecord", target, success: false, ex.Message, correlationId);
+            _audit.LogWrite(user, "DeleteRecord", target, success: false, ex.GetType().Name, correlationId);
             _logger.LogError(ex, "Unexpected error deleting record {Target}", target);
             return StatusCode(StatusCodes.Status500InternalServerError,
-                new ProblemDetails { Detail = "An unexpected error occurred." });
+                CreateSafeProblem(
+                    StatusCodes.Status500InternalServerError,
+                    "Server error",
+                    "An unexpected error occurred."));
         }
+    }
+
+    private ProblemDetails CreateSafeProblem(int status, string title, string detail)
+    {
+        return new ProblemDetails
+        {
+            Status = status,
+            Title = title,
+            Detail = detail,
+            Extensions = { ["correlationId"] = HttpContext.TraceIdentifier }
+        };
+    }
+
+    private static string BuildAuditTarget(string zoneName, string hostName, string recordType)
+    {
+        return $"{recordType}:{hostName}@{zoneName}";
     }
 }
