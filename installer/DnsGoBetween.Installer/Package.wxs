@@ -32,6 +32,8 @@
 
     <!-- Configuration Properties -->
     <Property Id="ALLOWEDZONES" Value="example.com" />
+    <Property Id="PORT" Value="6790" />
+    <Property Id="SecureCustomProperties" Value="ALLOWEDZONES;PORT" />
 
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
 
@@ -49,35 +51,32 @@
       <Publish Dialog="ConfigDlg"      Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="1" />
       <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="ConfigDlg"      Order="2" />
     </UI>
-    <!--<WixVariable Id="WixUILicenseRtf" Value="License.rtf" />-->
 
     <Feature Id="Main" Title="DNS Go-Between" Level="1">
-      <!-- Service EXE + ServiceInstall/ServiceControl + firewall rules -->
       <ComponentGroupRef Id="ServiceComponent" />
-      <!-- Auto-harvested publish output (all other files) -->
       <ComponentGroupRef Id="HarvestedFiles" />
     </Feature>
 
     <CustomAction
-      Id="DeleteFirewallHttp"
+      Id="DeleteFirewallApi"
       Directory="SystemFolder"
-      ExeCommand='netsh advfirewall firewall delete rule name="DNS Go-Between HTTP"'
+      ExeCommand='netsh advfirewall firewall delete rule name="DNS Go-Between API"'
       Execute="deferred"
       Impersonate="no"
       Return="ignore" />
 
     <CustomAction
-      Id="AddFirewallHttp"
+      Id="AddFirewallApi"
       Directory="SystemFolder"
-      ExeCommand='netsh advfirewall firewall add rule name="DNS Go-Between HTTP" dir=in action=allow protocol=TCP localport=6790 profile=any'
+      ExeCommand='netsh advfirewall firewall add rule name="DNS Go-Between API" dir=in action=allow protocol=TCP localport=[PORT] profile=any'
       Execute="deferred"
       Impersonate="no"
       Return="ignore" />
 
     <CustomAction
-      Id="DeleteFirewallHttpOnUninstall"
+      Id="DeleteFirewallApiOnUninstall"
       Directory="SystemFolder"
-      ExeCommand='netsh advfirewall firewall delete rule name="DNS Go-Between HTTP"'
+      ExeCommand='netsh advfirewall firewall delete rule name="DNS Go-Between API"'
       Execute="deferred"
       Impersonate="no"
       Return="ignore" />
@@ -85,16 +84,16 @@
     <CustomAction
       Id="UpdateConfig"
       Directory="INSTALLFOLDER"
-      ExeCommand='powershell.exe -ExecutionPolicy Bypass -File "[INSTALLFOLDER]scripts\update-config.ps1" -InstallDir "[INSTALLFOLDER]\" -AllowedZonesString "[ALLOWEDZONES]"'
+      ExeCommand='powershell.exe -ExecutionPolicy Bypass -File "[INSTALLFOLDER]scripts\update-config.ps1" -InstallDir "[INSTALLFOLDER]\" -AllowedZonesString "[ALLOWEDZONES]" -HttpsPort "[PORT]"'
       Execute="deferred"
       Impersonate="no"
       Return="check" />
 
     <InstallExecuteSequence>
-      <Custom Action="DeleteFirewallHttp" After="InstallFiles" Condition="NOT REMOVE" />
-      <Custom Action="AddFirewallHttp" After="DeleteFirewallHttp" Condition="NOT REMOVE" />
-      <Custom Action="UpdateConfig" After="AddFirewallHttp" Condition="NOT REMOVE" />
-      <Custom Action="DeleteFirewallHttpOnUninstall" Before="RemoveFiles" Condition='REMOVE="ALL"' />
+      <Custom Action="DeleteFirewallApi" After="InstallFiles" Condition="NOT REMOVE" />
+      <Custom Action="AddFirewallApi" After="DeleteFirewallApi" Condition="NOT REMOVE" />
+      <Custom Action="UpdateConfig" After="AddFirewallApi" Condition="NOT REMOVE" />
+      <Custom Action="DeleteFirewallApiOnUninstall" Before="RemoveFiles" Condition='REMOVE="ALL"' />
     </InstallExecuteSequence>
 
   </Package>
@@ -103,6 +102,10 @@
   <Fragment>
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="DnsGoBetween" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="DNS Go-Between" />
     </StandardDirectory>
   </Fragment>
 

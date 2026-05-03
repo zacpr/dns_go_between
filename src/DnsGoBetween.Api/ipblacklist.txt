@@ -1,0 +1,8 @@
+# DNS Go-Between IP blacklist
+# Comma/semicolon/newline-separated IPs or CIDRs.
+# Any matching address is denied.
+#
+# Examples:
+# 203.0.113.10
+# 198.51.100.0/24
+# 10.10.10.5,10.10.10.6

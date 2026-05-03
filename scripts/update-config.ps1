@@ -1,13 +1,16 @@
 # Update-DnsGoBetweenConfig.ps1
 # This script is intended to be called by the WiX installer or manually after install
-# to update the AllowedZones in appsettings.json.
+# to update AllowedZones and HTTPS port in appsettings.json.
 
 param(
     [Parameter(Mandatory=$true)]
     [string]$InstallDir,
 
     [Parameter(Mandatory=$true)]
-    [string]$AllowedZonesString
+    [string]$AllowedZonesString,
+
+    [Parameter(Mandatory=$true)]
+    [string]$HttpsPort
 )
 
 $ErrorActionPreference = "Stop"
@@ -21,8 +24,14 @@ function Write-Log($msg) {
 Write-Log "Starting configuration update."
 Write-Log "InstallDir: $InstallDir"
 Write-Log "AllowedZones: $AllowedZonesString"
+Write-Log "HttpsPort: $HttpsPort"
 
 try {
+    $port = 0
+    if (-not [int]::TryParse($HttpsPort, [ref]$port) -or $port -lt 1 -or $port -gt 65535) {
+        throw "Invalid HttpsPort '$HttpsPort'. Expected integer in range 1-65535."
+    }
+
     $configPath = Join-Path $InstallDir "appsettings.json"
     if (-not (Test-Path $configPath)) {
         Write-Log "ERROR: appsettings.json not found at $configPath"
@@ -30,23 +39,29 @@ try {
     }
 
     $json = Get-Content $configPath -Raw | ConvertFrom-Json
-    
-    # Split the comma-separated string into an array
+
+    # Split the comma/semicolon-separated string into an array
     $zonesArray = $AllowedZonesString.Split(",;", [System.StringSplitOptions]::RemoveEmptyEntries).Trim()
-    
-    # Update the object
+
     if ($null -eq $json.Dns) {
         Write-Log "Initializing Dns section in config"
-        $json | Add-Member -MemberType NoteProperty -Name "Dns" -Value @{ "AllowedZones" = $zonesArray }
-    } else {
-        $json.Dns.AllowedZones = $zonesArray
+        $json | Add-Member -MemberType NoteProperty -Name "Dns" -Value ([pscustomobject]@{})
+    }
+    $json.Dns.AllowedZones = $zonesArray
+
+    if ($null -eq $json.Tls) {
+        $json | Add-Member -MemberType NoteProperty -Name "Tls" -Value ([pscustomobject]@{})
     }
 
-    # Save it back
-    $json | ConvertTo-Json -Depth 20 | Set-Content $configPath
+    $json.Tls.HttpsPort = $port
+    if ($null -eq $json.Tls.EnableHttp) { $json.Tls.EnableHttp = $false }
+    if ($null -eq $json.Tls.HttpPort) { $json.Tls.HttpPort = 0 }
+
+    $json | ConvertTo-Json -Depth 20 | Set-Content $configPath -Encoding UTF8
     Write-Log "Successfully updated appsettings.json"
-} catch {
+}
+catch {
     Write-Log "EXCEPTION: $($_.Exception.Message)"
     Write-Log "STACK: $($_.ScriptStackTrace)"
     exit 1
-} 
+}

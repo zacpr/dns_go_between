@@ -14,4 +14,14 @@
     <ProjectReference Include="..\DnsGoBetween.Core\DnsGoBetween.Core.csproj" />
     <ProjectReference Include="..\DnsGoBetween.Infrastructure\DnsGoBetween.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="ipwhitelist.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="ipblacklist.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

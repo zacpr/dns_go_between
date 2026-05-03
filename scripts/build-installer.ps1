@@ -244,29 +244,26 @@ if (-not $SkipPublish) {
     }
 }
 
-# Ensure service-safe runtime config in publish output.
-# Some prior publish folders may still contain an Https endpoint which fails under LocalSystem.
+# Ensure installer defaults are HTTPS-first in publish output.
 $publishAppSettings = Join-Path $PublishDir "appsettings.json"
 if (Test-Path $publishAppSettings) {
     try {
         $cfg = Get-Content $publishAppSettings -Raw | ConvertFrom-Json
-        if ($null -eq $cfg.Kestrel) {
-            $cfg | Add-Member -MemberType NoteProperty -Name Kestrel -Value ([pscustomobject]@{})
+
+        if ($null -eq $cfg.Tls) {
+            $cfg | Add-Member -MemberType NoteProperty -Name Tls -Value ([pscustomobject]@{})
         }
-        $cfg.Kestrel.Endpoints = [pscustomobject]@{
-            Http = [pscustomobject]@{
-                Url = "http://0.0.0.0:6790"
-            }
-        }
+        if ($null -eq $cfg.Tls.HttpsPort) { $cfg.Tls.HttpsPort = 6790 }
+        if ($null -eq $cfg.Tls.EnableHttp) { $cfg.Tls.EnableHttp = $false }
+        if ($null -eq $cfg.Tls.HttpPort) { $cfg.Tls.HttpPort = 0 }
 
         $cfg | ConvertTo-Json -Depth 20 | Set-Content -Path $publishAppSettings -Encoding UTF8
-        Write-Host "       Normalized publish appsettings to HTTP-only endpoint." -ForegroundColor Green
+        Write-Host "       Verified publish appsettings TLS defaults." -ForegroundColor Green
     }
     catch {
         throw "Failed to normalize publish appsettings at '$publishAppSettings': $($_.Exception.Message)"
     }
 }
-
 # ── Step 2: Build MSI ─────────────────────────────────────────────────────────
 
 Write-Host "`n[2/2] Building MSI with WiX v4..." -ForegroundColor Cyan
