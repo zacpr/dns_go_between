@@ -88,6 +88,14 @@ public sealed class DnsController : ControllerBase
                 "Invalid request",
                 "The record request is invalid."));
         }
+        catch (InvalidOperationException ex) when (IsDuplicateRecordAdd(ex))
+        {
+            _audit.LogWrite(user, "AddRecord", target, success: false, ex.GetType().Name, correlationId);
+            return Conflict(CreateSafeProblem(
+                StatusCodes.Status409Conflict,
+                "Record already exists",
+                "A matching DNS record already exists."));
+        }
         catch (Exception ex)
         {
             _audit.LogWrite(user, "AddRecord", target, success: false, ex.GetType().Name, correlationId);
@@ -168,5 +176,18 @@ public sealed class DnsController : ControllerBase
     private static string BuildAuditTarget(string zoneName, string hostName, string recordType)
     {
         return $"{recordType}:{hostName}@{zoneName}";
+    }
+
+    private static bool IsDuplicateRecordAdd(InvalidOperationException ex)
+    {
+        if (string.IsNullOrWhiteSpace(ex.Message))
+        {
+            return false;
+        }
+
+        return ex.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase) ||
+               ex.Message.Contains("record exists", StringComparison.OrdinalIgnoreCase) ||
+               ex.Message.Contains("resource record", StringComparison.OrdinalIgnoreCase) &&
+               ex.Message.Contains("exist", StringComparison.OrdinalIgnoreCase);
     }
 }
