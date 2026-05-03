@@ -8,6 +8,7 @@
 @rendermode InteractiveServer
 @inject IDnsRecordService DnsService
 @inject ILogger<DnsTree> Logger
+@inject IJSRuntime JS
 
 <PageTitle>DNS Manager</PageTitle>
 <h1>DNS Record Manager</h1>
@@ -23,11 +24,40 @@ else if (_error is not null)
 
 @if (!_loading)
 {
+    <div class="search-bar">
+        <input @ref="_searchInput" 
+               @bind="_searchQuery"
+               @oninput="@((ChangeEventArgs e) => { _searchQuery = e.Value?.ToString() ?? string.Empty; UpdateSearchResults(); })"
+               @onkeydown="HandleSearchKeydown"
+               type="text"
+               placeholder="🔍 Search zones, hosts, records (Ctrl+F)…"
+               class="search-input" />
+        @if (!string.IsNullOrEmpty(_searchQuery))
+        {
+            <button @onclick="ClearSearchAsync" class="btn-clear-search" title="Clear search">✕</button>
+        }
+        @if (_searchResults > 0)
+        {
+            <span class="search-results">@_searchResults match@(_searchResults == 1 ? "" : "es")</span>
+        }
+    </div>
+
     <div class="dns-tree">
         @foreach (var zone in _zones)
         {
-            <div class="zone-node">
-                <span class="zone-toggle" @onclick="() => ToggleZoneAsync(zone.Name)">
+            var zoneMatches = MatchesSearch(zone.Name);
+            var hasMatchingRecords = false;
+            
+            if (_zoneRecords.TryGetValue(zone.Name, out var records))
+            {
+                hasMatchingRecords = records.Any(r => MatchesSearch(r.HostName) || MatchesSearch(r.Data));
+            }
+            
+            if (!zoneMatches && !hasMatchingRecords && !string.IsNullOrEmpty(_searchQuery))
+                continue;
+
+            <div class="zone-node @(zoneMatches ? "search-highlight" : "")">
+                <span class="zone-toggle" @onclick="() => ToggleZoneAsync(zone.Name, hasMatchingRecords)">
                     @(_expandedZones.Contains(zone.Name) ? "▼" : "▶")
                     <strong>@zone.Name</strong>
                     <span class="badge">@(zone.ZoneType ?? "Zone")</span>
@@ -39,20 +69,30 @@ else if (_error is not null)
                     {
                         <p class="indent loading">&#x23F3; Loading records&hellip;</p>
                     }
-                    else if (_zoneRecords.TryGetValue(zone.Name, out var records))
+                    else if (_zoneRecords.TryGetValue(zone.Name, out var zoneRecords))
                     {
-                        @foreach (var hostGroup in records.GroupBy(r => r.HostName).OrderBy(g => g.Key))
+                        @foreach (var hostGroup in zoneRecords.GroupBy(r => r.HostName).OrderBy(g => g.Key))
                         {
                             var hostKey = $"{zone.Name}|{hostGroup.Key}";
-                            <div class="host-node indent">
-                                <span class="host-toggle" @onclick="() => ToggleHost(hostKey)">
+                            var hostMatches = MatchesSearch(hostGroup.Key);
+                            var matchingRecords = hostGroup.Where(r => MatchesSearch(r.Data) || string.IsNullOrEmpty(_searchQuery)).ToList();
+                            
+                            if (!hostMatches && matchingRecords.Count == 0 && !string.IsNullOrEmpty(_searchQuery))
+                                continue;
+
+                            <div class="host-node indent @(hostMatches ? "search-highlight" : "")">
+                                <span class="host-toggle" @onclick="() => ToggleHost(hostKey, matchingRecords.Any())">
                                     @(_expandedHosts.Contains(hostKey) ? "▼" : "▶") @hostGroup.Key
                                 </span>
                                 @if (_expandedHosts.Contains(hostKey))
                                 {
                                     @foreach (var rec in hostGroup.OrderBy(r => r.RecordType.ToString()))
                                     {
-                                        <div class="record-node indent2">
+                                        var recordMatches = MatchesSearch(rec.Data);
+                                        if (!recordMatches && !string.IsNullOrEmpty(_searchQuery))
+                                            continue;
+
+                                        <div class="record-node indent2 @(recordMatches ? "search-highlight" : "")">
                                             <span class="badge-type @GetRecordTypeCssClass(rec.RecordType)">@rec.RecordType</span>
                                             <span class="record-data">@rec.Data</span>
                                             <button class="btn-copy" title="Copy record data" @onclick="() => CopyToClipboardAsync(rec.Data)">📋</button>
@@ -195,6 +235,11 @@ else if (_error is not null)
     private readonly HashSet<string> _zoneLoading = new();
     private readonly Dictionary<string, IReadOnlyList<DnsRecord>> _zoneRecords = new();
 
+    // Search state
+    private string _searchQuery = string.Empty;
+    private int _searchResults;
+    private ElementReference _searchInput;
+
     // Add form state
     private bool _showAddForm;
     private AddFormModel _addForm = new();
@@ -230,41 +275,6 @@ else if (_error is not null)
         {
             _loading = false;
         }
-    }
-
-    private async Task ToggleZoneAsync(string zoneName)
-    {
-        if (!_expandedZones.Add(zoneName))
-        {
-            _expandedZones.Remove(zoneName);
-            return;
-        }
-
-        if (_zoneRecords.ContainsKey(zoneName)) return;
-
-        _zoneLoading.Add(zoneName);
-        StateHasChanged();
-
-        try
-        {
-            _zoneRecords[zoneName] = await DnsService.ListRecordsAsync(zoneName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Failed to load records for zone {Zone}", zoneName);
-            _error = $"Failed to load records for '{zoneName}': {ex.Message}";
-            _expandedZones.Remove(zoneName);
-        }
-        finally
-        {
-            _zoneLoading.Remove(zoneName);
-        }
-    }
-
-    private void ToggleHost(string hostKey)
-    {
-        if (!_expandedHosts.Add(hostKey))
-            _expandedHosts.Remove(hostKey);
     }
 
     private void ShowAddForm(string zone, string? host)
@@ -477,4 +487,146 @@ else if (_error is not null)
             Logger.LogError(ex, "Copy to clipboard failed");
         }
     }
+
+    // ── Search Methods ────────────────────────────────────────────────────────
+
+    private bool MatchesSearch(string text)
+    {
+        if (string.IsNullOrEmpty(_searchQuery)) return true;
+        return text.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void UpdateSearchResults()
+    {
+        if (string.IsNullOrEmpty(_searchQuery))
+        {
+            _searchResults = 0;
+            return;
+        }
+
+        var zoneCount = _zones.Count(z => MatchesSearch(z.Name));
+        var hostCount = 0;
+        var recordCount = 0;
+
+        foreach (var zone in _zones)
+        {
+            if (_zoneRecords.TryGetValue(zone.Name, out var records))
+            {
+                hostCount += records
+                    .GroupBy(r => r.HostName)
+                    .Count(g => MatchesSearch(g.Key));
+
+                recordCount += records.Count(r => MatchesSearch(r.Data));
+            }
+        }
+
+        _searchResults = zoneCount + hostCount + recordCount;
+    }
+
+    private async Task HandleSearchKeydownAsync(KeyboardEventArgs e)
+    {
+        if (e.CtrlKey && e.Code == "KeyF")
+        {
+            e.PreventDefault();
+            if (_searchInput.Context != null)
+            {
+                await _searchInput.FocusAsync();
+            }
+        }
+    }
+
+    private void HandleSearchKeydown(KeyboardEventArgs e)
+    {
+        // Prevent default browser search for Ctrl+F
+        if (e.CtrlKey && e.Code == "KeyF")
+        {
+            e.PreventDefault();
+        }
+    }
+
+    private async Task ClearSearchAsync()
+    {
+        _searchQuery = string.Empty;
+        _searchResults = 0;
+        // Auto-collapse all expanded items when search is cleared
+        if (_searchInput.Context != null)
+        {
+            await _searchInput.FocusAsync();
+        }
+        StateHasChanged();
+    }
+
+    // Override ToggleZoneAsync to support search auto-expand
+    private async Task ToggleZoneAsync(string zoneName, bool hasMatchingRecords = false)
+    {
+        // If searching and zone has matches, auto-expand
+        if (!string.IsNullOrEmpty(_searchQuery) && hasMatchingRecords && !_expandedZones.Contains(zoneName))
+        {
+            _expandedZones.Add(zoneName);
+            if (!_zoneRecords.ContainsKey(zoneName))
+            {
+                _zoneLoading.Add(zoneName);
+                StateHasChanged();
+                try
+                {
+                    _zoneRecords[zoneName] = await DnsService.ListRecordsAsync(zoneName);
+                    UpdateSearchResults();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, $"Failed to load records for zone {zoneName}");
+                }
+                finally
+                {
+                    _zoneLoading.Remove(zoneName);
+                }
+            }
+            return;
+        }
+
+        // Normal toggle behavior
+        if (!_expandedZones.Add(zoneName))
+        {
+            _expandedZones.Remove(zoneName);
+            return;
+        }
+
+        if (_zoneRecords.ContainsKey(zoneName)) return;
+
+        _zoneLoading.Add(zoneName);
+        StateHasChanged();
+
+        try
+        {
+            _zoneRecords[zoneName] = await DnsService.ListRecordsAsync(zoneName);
+            UpdateSearchResults();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"Failed to load records for zone {zoneName}");
+        }
+        finally
+        {
+            _zoneLoading.Remove(zoneName);
+        }
+    }
+
+    // Override ToggleHost to support search auto-expand
+    private void ToggleHost(string hostKey, bool hasMatchingRecords = false)
+    {
+        // If searching and host has matches, auto-expand
+        if (!string.IsNullOrEmpty(_searchQuery) && hasMatchingRecords && !_expandedHosts.Contains(hostKey))
+        {
+            _expandedHosts.Add(hostKey);
+            UpdateSearchResults();
+            return;
+        }
+
+        // Normal toggle
+        if (!_expandedHosts.Add(hostKey))
+        {
+            _expandedHosts.Remove(hostKey);
+        }
+    }
 }
+
