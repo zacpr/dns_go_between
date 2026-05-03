@@ -81,7 +81,7 @@ else if (_error is not null)
                                 continue;
 
                             <div class="host-node indent @(hostMatches ? "search-highlight" : "")">
-                                <span class="host-toggle" @onclick="() => ToggleHost(hostKey, matchingRecords.Any())">
+                                <span class="host-toggle" @onclick="() => ToggleHostAsync(hostKey, matchingRecords.Any())">
                                     @(_expandedHosts.Contains(hostKey) ? "▼" : "▶") @hostGroup.Key
                                 </span>
                                 @if (_expandedHosts.Contains(hostKey))
@@ -290,6 +290,9 @@ else if (_error is not null)
         finally
         {
             _loading = false;
+        
+            // Restore expanded tree state from session storage
+            await RestoreTreeStateAsync();
         }
     }
 
@@ -614,6 +617,7 @@ else if (_error is not null)
                 finally
                 {
                     _zoneLoading.Remove(zoneName);
+                            await PersistTreeStateAsync();
                 }
             }
             return;
@@ -623,10 +627,12 @@ else if (_error is not null)
         if (!_expandedZones.Add(zoneName))
         {
             _expandedZones.Remove(zoneName);
+                        await PersistTreeStateAsync();
             return;
         }
 
         if (_zoneRecords.ContainsKey(zoneName)) return;
+    await PersistTreeStateAsync();
 
         _zoneLoading.Add(zoneName);
         StateHasChanged();
@@ -648,11 +654,13 @@ else if (_error is not null)
 
     // Override ToggleHost to support search auto-expand
     private void ToggleHost(string hostKey, bool hasMatchingRecords = false)
+        private async Task ToggleHostAsync(string hostKey, bool hasMatchingRecords = false)
     {
         // If searching and host has matches, auto-expand
         if (!string.IsNullOrEmpty(_searchQuery) && hasMatchingRecords && !_expandedHosts.Contains(hostKey))
         {
             _expandedHosts.Add(hostKey);
+                        await PersistTreeStateAsync();
             UpdateSearchResults();
             return;
         }
@@ -661,6 +669,7 @@ else if (_error is not null)
         if (!_expandedHosts.Add(hostKey))
         {
             _expandedHosts.Remove(hostKey);
+            await PersistTreeStateAsync();
         }
     }
 
@@ -703,6 +712,62 @@ else if (_error is not null)
         {
             _toasts.Remove(toast);
             StateHasChanged();
+        }
+    }
+
+    // ── Tree State Persistence ───────────────────────────────────────────────
+
+    private async Task RestoreTreeStateAsync()
+    {
+        try
+        {
+            // Restore expanded zones from sessionStorage
+            var expandedZonesJson = await JS.InvokeAsync<string>("sessionStorage.getItem", "dns_expanded_zones");
+            if (!string.IsNullOrEmpty(expandedZonesJson))
+            {
+                var expandedZones = System.Text.Json.JsonSerializer.Deserialize<string[]>(expandedZonesJson) ?? [];
+                foreach (var zone in expandedZones)
+                {
+                    if (_zones.Any(z => z.Name == zone))
+                    {
+                        // Auto-expand zone
+                        await ToggleZoneAsync(zone);
+                    }
+                }
+            }
+
+            // Restore expanded hosts from sessionStorage
+            var expandedHostsJson = await JS.InvokeAsync<string>("sessionStorage.getItem", "dns_expanded_hosts");
+            if (!string.IsNullOrEmpty(expandedHostsJson))
+            {
+                var expandedHosts = System.Text.Json.JsonSerializer.Deserialize<string[]>(expandedHostsJson) ?? [];
+                foreach (var hostKey in expandedHosts)
+                {
+                    _expandedHosts.Add(hostKey);
+                }
+            }
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to restore tree state from session storage");
+        }
+    }
+
+    private async Task PersistTreeStateAsync()
+    {
+        try
+        {
+            var expandedZonesJson = System.Text.Json.JsonSerializer.Serialize(_expandedZones.ToArray());
+            await JS.InvokeVoidAsync("sessionStorage.setItem", "dns_expanded_zones", expandedZonesJson);
+
+            var expandedHostsJson = System.Text.Json.JsonSerializer.Serialize(_expandedHosts.ToArray());
+            await JS.InvokeVoidAsync("sessionStorage.setItem", "dns_expanded_hosts", expandedHostsJson);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to persist tree state to session storage");
         }
     }
 }
