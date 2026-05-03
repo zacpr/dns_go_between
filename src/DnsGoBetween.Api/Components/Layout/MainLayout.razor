@@ -1,0 +1,19 @@
+@inherits LayoutComponentBase
+
+<div class="layout">
+    <header class="top-bar">
+        <span class="app-title">&#x1F4BB; DNS Go-Between</span>
+        <AuthorizeView>
+            <Authorized>
+                <span class="user-info">&#x1F464; @context.User.Identity?.Name</span>
+            </Authorized>
+        </AuthorizeView>
+        <a class="api-link" href="/swagger" target="_blank">API Docs</a>
+    </header>
+    <main class="content">
+        @Body
+    </main>
+    <footer class="bottom-bar">
+        DNS Go-Between v1 &mdash; <a href="/health/live">Health</a>
+    </footer>
+</div>

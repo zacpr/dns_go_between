@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Service.wxs — Windows Service installation component.
+
+  The service EXE is the KeyPath for this component so Windows Installer tracks it.
+  ServiceInstall creates the service; ServiceControl starts it on install and
+  stops + removes it on uninstall.
+
+  FirewallRules opens TCP 6790 (HTTP) and 6791 (HTTPS) via Windows Firewall.
+  Change Scope from "any" to "localSubnet" if you want to restrict to LAN only.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+  <Fragment>
+
+    <!-- ── Windows Service ──────────────────────────────────────────────── -->
+    <ComponentGroup Id="ServiceComponent" Directory="INSTALLFOLDER">
+      <Component Id="ServiceExeComp" Guid="A2B3C4D5-E6F7-4890-B1C2-D3E4F5A6B7C8">
+        <!--
+          Source is resolved via the BindPath set in .wixproj.
+          No absolute path needed here — WiX finds it in the publish output.
+        -->
+        <File Id="MainExe"
+              Source="DnsGoBetween.Api.exe"
+              KeyPath="yes" />
+
+        <ServiceInstall
+          Id="SvcInstall"
+          Name="DnsGoBetween"
+          DisplayName="DNS Go-Between"
+          Description="REST API and web UI for Windows DNS Server record management"
+          Type="ownProcess"
+          Start="auto"
+          ErrorControl="normal"
+          Account="LocalSystem" />
+
+        <!--
+          Start="defer"    — do NOT start immediately during install.
+          Stop="both"      — stop the service on both uninstall and upgrades.
+          Remove="uninstall" — delete the service entry on uninstall.
+          The service will auto-start on next reboot since Start="auto" above.
+        -->
+        <ServiceControl
+          Id="SvcControl"
+          Name="DnsGoBetween"
+          Stop="both"
+          Remove="uninstall"
+          Wait="yes" />
+      </Component>
+    </ComponentGroup>
+
+  </Fragment>
+
+</Wix>

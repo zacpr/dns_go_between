@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Package.wxs  WiX v4 top-level package definition.
+  Directories, feature tree, and UI dialog set are defined here.
+  The Windows Service component lives in Service.wxs.
+  All other published files are pulled in via HarvestDirectory (see .wixproj).
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package
+    Name="DNS Go-Between"
+    Manufacturer="DNS Go-Between"
+    Version="1.0.0"
+    UpgradeCode="7B3F1A2E-9C4D-4F8B-A1E3-2D7C8B9F0E1A"
+    Scope="perMachine">
+
+    <SummaryInformation
+      Keywords="Installer"
+      Description="DNS Go-Between  REST API and web UI for Windows DNS Server management" />
+
+    <!--
+      MajorUpgrade: any previous version is removed before the new one is installed.
+      Prevents duplicate installs and gives a clean upgrade path.
+    -->
+    <MajorUpgrade
+      Schedule="afterInstallInitialize"
+      DowngradeErrorMessage="A newer version of [ProductName] is already installed. Uninstall it first." />
+
+    <!-- Embed all cab files into the MSI so it ships as a single file. -->
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Default install directory property for WixUI_InstallDir -->
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+
+    <!-- Configuration Properties -->
+    <Property Id="ALLOWEDZONES" Value="example.com" />
+
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER">
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Order="2" />
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2" />
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="ConfigDlg" Order="3" />
+      <Publish Dialog="ConfigDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg" Order="1" />
+      <Publish Dialog="ConfigDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="1" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="ConfigDlg" Order="2" />
+    </ui:WixUI>
+    <!--<WixVariable Id="WixUILicenseRtf" Value="License.rtf" />-->
+
+    <Feature Id="Main" Title="DNS Go-Between" Level="1">
+      <!-- Service EXE + ServiceInstall/ServiceControl + firewall rules -->
+      <ComponentGroupRef Id="ServiceComponent" />
+      <!-- Auto-harvested publish output (all other files) -->
+      <ComponentGroupRef Id="HarvestedFiles" />
+    </Feature>
+
+    <CustomAction
+      Id="DeleteFirewallHttp"
+      Directory="SystemFolder"
+      ExeCommand='netsh advfirewall firewall delete rule name="DNS Go-Between HTTP"'
+      Execute="deferred"
+      Impersonate="no"
+      Return="ignore" />
+
+    <CustomAction
+      Id="AddFirewallHttp"
+      Directory="SystemFolder"
+      ExeCommand='netsh advfirewall firewall add rule name="DNS Go-Between HTTP" dir=in action=allow protocol=TCP localport=6790 profile=any'
+      Execute="deferred"
+      Impersonate="no"
+      Return="ignore" />
+
+    <CustomAction
+      Id="DeleteFirewallHttpOnUninstall"
+      Directory="SystemFolder"
+      ExeCommand='netsh advfirewall firewall delete rule name="DNS Go-Between HTTP"'
+      Execute="deferred"
+      Impersonate="no"
+      Return="ignore" />
+
+    <CustomAction
+      Id="UpdateConfig"
+      Directory="INSTALLFOLDER"
+      ExeCommand='powershell.exe -ExecutionPolicy Bypass -File "[INSTALLFOLDER]scripts\update-config.ps1" -InstallDir "[INSTALLFOLDER]\" -AllowedZonesString "[ALLOWEDZONES]"'
+      Execute="deferred"
+      Impersonate="no"
+      Return="check" />
+
+    <InstallExecuteSequence>
+      <Custom Action="DeleteFirewallHttp" After="InstallFiles" Condition="NOT REMOVE" />
+      <Custom Action="AddFirewallHttp" After="DeleteFirewallHttp" Condition="NOT REMOVE" />
+      <Custom Action="UpdateConfig" After="AddFirewallHttp" Condition="NOT REMOVE" />
+      <Custom Action="DeleteFirewallHttpOnUninstall" Before="RemoveFiles" Condition='REMOVE="ALL"' />
+    </InstallExecuteSequence>
+
+  </Package>
+
+  <!-- Directory layout -->
+  <Fragment>
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="DnsGoBetween" />
+    </StandardDirectory>
+  </Fragment>
+
+</Wix>

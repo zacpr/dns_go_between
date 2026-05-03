@@ -1,0 +1,24 @@
+<Project>
+  <!--
+    Redirect intermediate build output (obj/) to TEMP so builds do not fail
+    when the checked-in obj/ directories are owned by SYSTEM from a prior
+    privileged build.  This file is imported by MSBuild before
+    Microsoft.Common.props so BaseIntermediateOutputPath takes effect in time.
+
+    Also keep obj\ in DefaultItemExcludes: the .NET SDK sets
+    DefaultItemExcludes to $(BaseIntermediateOutputPath)** — when we change
+    BaseIntermediateOutputPath to a TEMP path, the original obj\ directory is
+    no longer excluded, which causes CS0579 duplicate attribute errors because
+    the previously-generated AssemblyInfo.cs in obj\ gets compiled alongside
+    the freshly generated one in the new TEMP path.  Adding obj\** here
+    restores the exclusion regardless of where BaseIntermediateOutputPath
+    points.
+  -->
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>$(TEMP)\DnsGoBetween.Build\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
+    <!-- Keep the original obj\ tree excluded even though BaseIntermediateOutputPath moved -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj\**</DefaultItemExcludes>
+    <!-- Also redirect bin/ output so locked bin/ files don't block the build -->
+    <BaseOutputPath>$(TEMP)\DnsGoBetween.Build\$(MSBuildProjectName)\bin\</BaseOutputPath>
+  </PropertyGroup>
+</Project>

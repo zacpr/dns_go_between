@@ -1,0 +1,31 @@
+<Project Sdk="WixToolset.Sdk/4.0.5">
+
+  <PropertyGroup>
+    <OutputName>DnsGoBetween-Setup</OutputName>
+    <!--
+      Version defaults to 1.0.0.  Override from the build script:
+        dotnet build -p:Version=1.2.3
+    -->
+    <Version Condition="'$(Version)' == ''">1.0.0</Version>
+    <!--
+      PublishDir must point at the output of `dotnet publish` for DnsGoBetween.Api.
+      The build-installer.ps1 script sets this automatically.
+      Override manually if building from an IDE:
+        dotnet build -p:PublishDir=..\..\publish\
+    -->
+    <PublishDir Condition="'$(PublishDir)' == ''">$(MSBuildThisFileDirectory)..\..\publish\</PublishDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext"   Version="4.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      BindPath: WiX searches this directory when resolving bare file names such as
+      Source="DnsGoBetween.Api.exe" in Service.wxs.
+    -->
+    <BindPath Include="$(PublishDir)" />
+  </ItemGroup>
+
+</Project>

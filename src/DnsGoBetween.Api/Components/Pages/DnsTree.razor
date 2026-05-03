@@ -1,0 +1,326 @@
+@using DnsGoBetween.Core.Interfaces
+@using DnsGoBetween.Core.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@page "/"
+@page "/dns"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IDnsRecordService DnsService
+@inject ILogger<DnsTree> Logger
+
+<PageTitle>DNS Manager</PageTitle>
+<h1>DNS Record Manager</h1>
+
+@if (_loading)
+{
+    <p class="loading">&#x23F3; Loading zones&hellip;</p>
+}
+else if (_error is not null)
+{
+    <div class="alert-danger">@_error <button @onclick="() => _error = null">&#x2715;</button></div>
+}
+
+@if (!_loading)
+{
+    <div class="dns-tree">
+        @foreach (var zone in _zones)
+        {
+            <div class="zone-node">
+                <span class="zone-toggle" @onclick="() => ToggleZoneAsync(zone.Name)">
+                    @(_expandedZones.Contains(zone.Name) ? "▼" : "▶")
+                    <strong>@zone.Name</strong>
+                    <span class="badge">@(zone.ZoneType ?? "Zone")</span>
+                </span>
+
+                @if (_expandedZones.Contains(zone.Name))
+                {
+                    @if (_zoneLoading.Contains(zone.Name))
+                    {
+                        <p class="indent loading">&#x23F3; Loading records&hellip;</p>
+                    }
+                    else if (_zoneRecords.TryGetValue(zone.Name, out var records))
+                    {
+                        @foreach (var hostGroup in records.GroupBy(r => r.HostName).OrderBy(g => g.Key))
+                        {
+                            var hostKey = $"{zone.Name}|{hostGroup.Key}";
+                            <div class="host-node indent">
+                                <span class="host-toggle" @onclick="() => ToggleHost(hostKey)">
+                                    @(_expandedHosts.Contains(hostKey) ? "▼" : "▶") @hostGroup.Key
+                                </span>
+                                @if (_expandedHosts.Contains(hostKey))
+                                {
+                                    @foreach (var rec in hostGroup.OrderBy(r => r.RecordType.ToString()))
+                                    {
+                                        <div class="record-node indent2">
+                                            <span class="badge-type">@rec.RecordType</span>
+                                            <span class="record-data">@rec.Data</span>
+                                            <span class="text-muted">TTL:@rec.TimeToLive</span>
+                                            @if (_isAdmin)
+                                            {
+                                                <button class="btn-delete" title="Delete record"
+                                                        @onclick="() => ConfirmDelete(rec)">&#x2715;</button>
+                                            }
+                                        </div>
+                                    }
+                                    @if (_isAdmin)
+                                    {
+                                        <button class="btn-add indent" @onclick="() => ShowAddForm(zone.Name, hostGroup.Key)">
+                                            + Add record under @hostGroup.Key
+                                        </button>
+                                    }
+                                }
+                            </div>
+                        }
+                        @if (_isAdmin)
+                        {
+                            <button class="btn-add indent" @onclick="() => ShowAddForm(zone.Name, null)">
+                                + Add new record to @zone.Name
+                            </button>
+                        }
+                    }
+                }
+            </div>
+        }
+    </div>
+}
+
+@* ── Add Record Modal ──────────────────────────────────────────────────────── *@
+@if (_showAddForm)
+{
+    <div class="modal-overlay">
+        <div class="modal-box">
+            <h3>Add DNS Record</h3>
+            <label>Zone
+                <input @bind="_addForm.ZoneName" readonly />
+            </label>
+            <label>Host Name
+                <input @bind="_addForm.HostName" placeholder="e.g. webserver or @@" />
+            </label>
+            <label>Type
+                <select @bind="_addForm.RecordTypeStr">
+                    <option>A</option>
+                    <option>AAAA</option>
+                    <option>CNAME</option>
+                    <option>PTR</option>
+                </select>
+            </label>
+            <label>Data
+                <input @bind="_addForm.Data" placeholder="IP address or hostname" />
+            </label>
+            <label>TTL (seconds)
+                <input type="number" @bind="_addForm.TimeToLive" min="60" />
+            </label>
+            @if (_modalError is not null)
+            {
+                <div class="alert-danger small">@_modalError</div>
+            }
+            <div class="modal-actions">
+                <button class="btn-primary" @onclick="SubmitAddAsync">Add Record</button>
+                <button @onclick="CloseAddForm">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@* ── Delete Confirm Modal ──────────────────────────────────────────────────── *@
+@if (_deleteTarget is not null)
+{
+    <div class="modal-overlay">
+        <div class="modal-box">
+            <h3>Confirm Delete</h3>
+            <p>Are you sure you want to delete this record?</p>
+            <table class="confirm-table">
+                <tr><th>Zone</th><td>@_deleteTarget.ZoneName</td></tr>
+                <tr><th>Host</th><td>@_deleteTarget.HostName</td></tr>
+                <tr><th>Type</th><td>@_deleteTarget.RecordType</td></tr>
+                <tr><th>Data</th><td>@_deleteTarget.Data</td></tr>
+            </table>
+            @if (_modalError is not null)
+            {
+                <div class="alert-danger small">@_modalError</div>
+            }
+            <div class="modal-actions">
+                <button class="btn-danger" @onclick="ExecuteDeleteAsync">Delete</button>
+                <button @onclick="() => { _deleteTarget = null; _modalError = null; }">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<DnsZone> _zones = [];
+    private bool _loading = true;
+    private string? _error;
+    private bool _isAdmin;
+
+    private readonly HashSet<string> _expandedZones = new();
+    private readonly HashSet<string> _expandedHosts = new();
+    private readonly HashSet<string> _zoneLoading = new();
+    private readonly Dictionary<string, IReadOnlyList<DnsRecord>> _zoneRecords = new();
+
+    // Add form state
+    private bool _showAddForm;
+    private AddFormModel _addForm = new();
+    private string? _modalError;
+
+    // Delete state
+    private DnsRecord? _deleteTarget;
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthState is not null)
+        {
+            var auth = await AuthState;
+            _isAdmin = auth.User.IsInRole("DnsAdmins") || auth.User.IsInRole("Domain Admins");
+        }
+
+        try
+        {
+            _zones = await DnsService.ListZonesAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load DNS zones");
+            _error = $"Failed to load zones: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ToggleZoneAsync(string zoneName)
+    {
+        if (!_expandedZones.Add(zoneName))
+        {
+            _expandedZones.Remove(zoneName);
+            return;
+        }
+
+        if (_zoneRecords.ContainsKey(zoneName)) return;
+
+        _zoneLoading.Add(zoneName);
+        StateHasChanged();
+
+        try
+        {
+            _zoneRecords[zoneName] = await DnsService.ListRecordsAsync(zoneName);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load records for zone {Zone}", zoneName);
+            _error = $"Failed to load records for '{zoneName}': {ex.Message}";
+            _expandedZones.Remove(zoneName);
+        }
+        finally
+        {
+            _zoneLoading.Remove(zoneName);
+        }
+    }
+
+    private void ToggleHost(string hostKey)
+    {
+        if (!_expandedHosts.Add(hostKey))
+            _expandedHosts.Remove(hostKey);
+    }
+
+    private void ShowAddForm(string zone, string? host)
+    {
+        _addForm = new AddFormModel
+        {
+            ZoneName = zone,
+            HostName = host ?? string.Empty,
+            RecordTypeStr = "A",
+            TimeToLive = 3600
+        };
+        _modalError = null;
+        _showAddForm = true;
+    }
+
+    private void CloseAddForm()
+    {
+        _showAddForm = false;
+        _modalError = null;
+    }
+
+    private async Task SubmitAddAsync()
+    {
+        _modalError = null;
+
+        if (!Enum.TryParse<DnsRecordType>(_addForm.RecordTypeStr, out var recordType))
+        {
+            _modalError = "Invalid record type.";
+            return;
+        }
+
+        try
+        {
+            await DnsService.AddRecordAsync(new AddRecordRequest
+            {
+                ZoneName = _addForm.ZoneName,
+                HostName = _addForm.HostName,
+                RecordType = recordType,
+                Data = _addForm.Data,
+                TimeToLive = _addForm.TimeToLive
+            });
+
+            // Refresh the zone record cache
+            _zoneRecords.Remove(_addForm.ZoneName);
+            _expandedZones.Add(_addForm.ZoneName);
+            _zoneRecords[_addForm.ZoneName] = await DnsService.ListRecordsAsync(_addForm.ZoneName);
+
+            _showAddForm = false;
+        }
+        catch (Exception ex)
+        {
+            _modalError = ex.Message;
+        }
+    }
+
+    private void ConfirmDelete(DnsRecord record)
+    {
+        _deleteTarget = record;
+        _modalError = null;
+    }
+
+    private async Task ExecuteDeleteAsync()
+    {
+        if (_deleteTarget is null) return;
+        _modalError = null;
+
+        try
+        {
+            await DnsService.DeleteRecordAsync(new DeleteRecordRequest
+            {
+                ZoneName = _deleteTarget.ZoneName,
+                HostName = _deleteTarget.HostName,
+                RecordType = _deleteTarget.RecordType,
+                Data = _deleteTarget.Data
+            });
+
+            // Refresh the zone record cache
+            var zone = _deleteTarget.ZoneName;
+            _zoneRecords.Remove(zone);
+            _zoneRecords[zone] = await DnsService.ListRecordsAsync(zone);
+
+            _deleteTarget = null;
+        }
+        catch (Exception ex)
+        {
+            _modalError = ex.Message;
+        }
+    }
+
+    private sealed class AddFormModel
+    {
+        public string ZoneName { get; set; } = string.Empty;
+        public string HostName { get; set; } = string.Empty;
+        public string RecordTypeStr { get; set; } = "A";
+        public string Data { get; set; } = string.Empty;
+        public int TimeToLive { get; set; } = 3600;
+    }
+}

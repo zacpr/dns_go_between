@@ -1,0 +1,1097 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Directory Id="DIR_0001" Name="bin">
+        <Directory Id="DIR_0002" Name="Release">
+          <Directory Id="DIR_0003" Name="net8.0">
+            <Directory Id="DIR_0004" Name="win-x64" />
+          </Directory>
+        </Directory>
+      </Directory>
+      <Directory Id="DIR_0005" Name="cs" />
+      <Directory Id="DIR_0006" Name="de" />
+      <Directory Id="DIR_0007" Name="es" />
+      <Directory Id="DIR_0008" Name="fr" />
+      <Directory Id="DIR_0009" Name="it" />
+      <Directory Id="DIR_0010" Name="ja" />
+      <Directory Id="DIR_0011" Name="ko" />
+      <Directory Id="DIR_0012" Name="pl" />
+      <Directory Id="DIR_0013" Name="pt-BR" />
+      <Directory Id="DIR_0014" Name="ref" />
+      <Directory Id="DIR_0015" Name="ru" />
+      <Directory Id="DIR_0016" Name="runtimes">
+        <Directory Id="DIR_0017" Name="unix">
+          <Directory Id="DIR_0018" Name="lib">
+            <Directory Id="DIR_0019" Name="net8.0">
+              <Directory Id="DIR_0020" Name="Modules">
+                <Directory Id="DIR_0021" Name="Microsoft.PowerShell.Host" />
+                <Directory Id="DIR_0022" Name="Microsoft.PowerShell.Management" />
+                <Directory Id="DIR_0023" Name="Microsoft.PowerShell.Security" />
+                <Directory Id="DIR_0024" Name="Microsoft.PowerShell.Utility" />
+              </Directory>
+            </Directory>
+          </Directory>
+        </Directory>
+        <Directory Id="DIR_0025" Name="win">
+          <Directory Id="DIR_0026" Name="lib">
+            <Directory Id="DIR_0027" Name="net8.0">
+              <Directory Id="DIR_0028" Name="Modules">
+                <Directory Id="DIR_0029" Name="CimCmdlets" />
+                <Directory Id="DIR_0030" Name="Microsoft.PowerShell.Diagnostics" />
+                <Directory Id="DIR_0031" Name="Microsoft.PowerShell.Host" />
+                <Directory Id="DIR_0032" Name="Microsoft.PowerShell.Management" />
+                <Directory Id="DIR_0033" Name="Microsoft.PowerShell.Security" />
+                <Directory Id="DIR_0034" Name="Microsoft.PowerShell.Utility" />
+                <Directory Id="DIR_0035" Name="Microsoft.WSMan.Management" />
+                <Directory Id="DIR_0036" Name="PSDiagnostics" />
+              </Directory>
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+      <Directory Id="DIR_0037" Name="tr" />
+      <Directory Id="DIR_0038" Name="wwwroot">
+        <Directory Id="DIR_0039" Name="css" />
+      </Directory>
+      <Directory Id="DIR_0040" Name="zh-Hans" />
+      <Directory Id="DIR_0041" Name="zh-Hant" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <ComponentGroup Id="HarvestedFiles">
+      <Component Id="CMP_0001" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0001" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\appsettings.Development.json" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0002" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0002" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\appsettings.json" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0003" Guid="*" Directory="DIR_0004">
+        <File Id="FIL_0003" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\bin\Release\net8.0\win-x64\appsettings.Development.json" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0004" Guid="*" Directory="DIR_0004">
+        <File Id="FIL_0004" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\bin\Release\net8.0\win-x64\appsettings.json" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0005" Guid="*" Directory="DIR_0004">
+        <File Id="FIL_0005" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\bin\Release\net8.0\win-x64\DnsGoBetween.Api.deps.json" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0006" Guid="*" Directory="DIR_0004">
+        <File Id="FIL_0006" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\bin\Release\net8.0\win-x64\DnsGoBetween.Api.runtimeconfig.json" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0007" Guid="*" Directory="DIR_0004">
+        <File Id="FIL_0007" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\bin\Release\net8.0\win-x64\DnsGoBetween.Api.staticwebassets.runtime.json" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0008" Guid="*" Directory="DIR_0005">
+        <File Id="FIL_0008" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\cs\Microsoft.CodeAnalysis.CSharp.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0009" Guid="*" Directory="DIR_0005">
+        <File Id="FIL_0009" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\cs\Microsoft.CodeAnalysis.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0010" Guid="*" Directory="DIR_0005">
+        <File Id="FIL_0010" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\cs\System.Private.ServiceModel.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0011" Guid="*" Directory="DIR_0005">
+        <File Id="FIL_0011" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\cs\System.Web.Services.Description.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0012" Guid="*" Directory="DIR_0006">
+        <File Id="FIL_0012" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\de\Microsoft.CodeAnalysis.CSharp.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0013" Guid="*" Directory="DIR_0006">
+        <File Id="FIL_0013" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\de\Microsoft.CodeAnalysis.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0014" Guid="*" Directory="DIR_0006">
+        <File Id="FIL_0014" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\de\System.Private.ServiceModel.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0015" Guid="*" Directory="DIR_0006">
+        <File Id="FIL_0015" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\de\System.Web.Services.Description.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0016" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0016" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\DnsGoBetween.Api.deps.json" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0017" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0017" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\DnsGoBetween.Api.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0018" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0018" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\DnsGoBetween.Api.pdb" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0019" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0019" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\DnsGoBetween.Api.runtimeconfig.json" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0020" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0020" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\DnsGoBetween.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0021" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0021" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\DnsGoBetween.Core.pdb" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0022" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0022" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\DnsGoBetween.Infrastructure.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0023" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0023" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\DnsGoBetween.Infrastructure.pdb" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0024" Guid="*" Directory="DIR_0007">
+        <File Id="FIL_0024" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\es\Microsoft.CodeAnalysis.CSharp.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0025" Guid="*" Directory="DIR_0007">
+        <File Id="FIL_0025" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\es\Microsoft.CodeAnalysis.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0026" Guid="*" Directory="DIR_0007">
+        <File Id="FIL_0026" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\es\System.Private.ServiceModel.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0027" Guid="*" Directory="DIR_0007">
+        <File Id="FIL_0027" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\es\System.Web.Services.Description.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0028" Guid="*" Directory="DIR_0008">
+        <File Id="FIL_0028" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\fr\Microsoft.CodeAnalysis.CSharp.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0029" Guid="*" Directory="DIR_0008">
+        <File Id="FIL_0029" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\fr\Microsoft.CodeAnalysis.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0030" Guid="*" Directory="DIR_0008">
+        <File Id="FIL_0030" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\fr\System.Private.ServiceModel.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0031" Guid="*" Directory="DIR_0008">
+        <File Id="FIL_0031" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\fr\System.Web.Services.Description.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0032" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0032" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\getfilesiginforedist.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0033" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0033" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\getfilesiginforedistwrapper.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0034" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0034" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Humanizer.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0035" Guid="*" Directory="DIR_0009">
+        <File Id="FIL_0035" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\it\Microsoft.CodeAnalysis.CSharp.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0036" Guid="*" Directory="DIR_0009">
+        <File Id="FIL_0036" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\it\Microsoft.CodeAnalysis.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0037" Guid="*" Directory="DIR_0009">
+        <File Id="FIL_0037" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\it\System.Private.ServiceModel.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0038" Guid="*" Directory="DIR_0009">
+        <File Id="FIL_0038" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\it\System.Web.Services.Description.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0039" Guid="*" Directory="DIR_0010">
+        <File Id="FIL_0039" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ja\Microsoft.CodeAnalysis.CSharp.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0040" Guid="*" Directory="DIR_0010">
+        <File Id="FIL_0040" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ja\Microsoft.CodeAnalysis.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0041" Guid="*" Directory="DIR_0010">
+        <File Id="FIL_0041" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ja\System.Private.ServiceModel.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0042" Guid="*" Directory="DIR_0010">
+        <File Id="FIL_0042" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ja\System.Web.Services.Description.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0043" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0043" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Json.More.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0044" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0044" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\JsonPointer.Net.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0045" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0045" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\JsonSchema.Net.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0046" Guid="*" Directory="DIR_0011">
+        <File Id="FIL_0046" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ko\Microsoft.CodeAnalysis.CSharp.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0047" Guid="*" Directory="DIR_0011">
+        <File Id="FIL_0047" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ko\Microsoft.CodeAnalysis.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0048" Guid="*" Directory="DIR_0011">
+        <File Id="FIL_0048" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ko\System.Private.ServiceModel.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0049" Guid="*" Directory="DIR_0011">
+        <File Id="FIL_0049" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ko\System.Web.Services.Description.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0050" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0050" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Markdig.Signed.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0051" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0051" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.ApplicationInsights.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0052" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0052" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.AspNetCore.Authentication.Negotiate.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0053" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0053" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Bcl.AsyncInterfaces.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0054" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0054" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.CodeAnalysis.CSharp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0055" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0055" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.CodeAnalysis.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0056" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0056" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Configuration.Binder.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0057" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0057" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Configuration.FileExtensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0058" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0058" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Configuration.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0059" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0059" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Configuration.UserSecrets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0060" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0060" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.DependencyInjection.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0061" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0061" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.DependencyInjection.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0062" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0062" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Diagnostics.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0063" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0063" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Diagnostics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0064" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0064" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Hosting.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0065" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0065" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Hosting.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0066" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0066" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Hosting.WindowsServices.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0067" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0067" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Logging.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0068" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0068" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Logging.Configuration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0069" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0069" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Logging.Console.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0070" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0070" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Logging.Debug.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0071" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0071" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Logging.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0072" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0072" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Logging.EventLog.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0073" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0073" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Logging.EventSource.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0074" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0074" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.ObjectPool.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0075" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0075" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Extensions.Options.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0076" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0076" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Management.Infrastructure.CimCmdlets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0077" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0077" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\microsoft.management.infrastructure.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0078" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0078" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\microsoft.management.infrastructure.native.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0079" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0079" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\microsoft.management.infrastructure.native.unmanaged.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0080" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0080" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.OpenApi.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0081" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0081" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.PowerShell.Commands.Diagnostics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0082" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0082" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.PowerShell.Commands.Management.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0083" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0083" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.PowerShell.Commands.Utility.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0084" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0084" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.PowerShell.ConsoleHost.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0085" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0085" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.PowerShell.CoreCLR.Eventing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0086" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0086" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.PowerShell.MarkdownRender.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0087" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0087" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.PowerShell.SDK.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0088" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0088" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.PowerShell.Security.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0089" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0089" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Win32.Registry.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0090" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0090" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.Win32.SystemEvents.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0091" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0091" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.WSMan.Management.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0092" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0092" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Microsoft.WSMan.Runtime.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0093" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0093" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Newtonsoft.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0094" Guid="*" Directory="DIR_0012">
+        <File Id="FIL_0094" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\pl\Microsoft.CodeAnalysis.CSharp.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0095" Guid="*" Directory="DIR_0012">
+        <File Id="FIL_0095" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\pl\Microsoft.CodeAnalysis.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0096" Guid="*" Directory="DIR_0012">
+        <File Id="FIL_0096" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\pl\System.Private.ServiceModel.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0097" Guid="*" Directory="DIR_0012">
+        <File Id="FIL_0097" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\pl\System.Web.Services.Description.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0098" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0098" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\PowerShell.Core.Instrumentation.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0099" Guid="*" Directory="DIR_0013">
+        <File Id="FIL_0099" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\pt-BR\Microsoft.CodeAnalysis.CSharp.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0100" Guid="*" Directory="DIR_0013">
+        <File Id="FIL_0100" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\pt-BR\Microsoft.CodeAnalysis.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0101" Guid="*" Directory="DIR_0013">
+        <File Id="FIL_0101" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\pt-BR\System.Private.ServiceModel.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0102" Guid="*" Directory="DIR_0013">
+        <File Id="FIL_0102" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\pt-BR\System.Web.Services.Description.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0103" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0103" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\pwrshplugin.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0104" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0104" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\Microsoft.CSharp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0105" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0105" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\Microsoft.VisualBasic.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0106" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0106" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\Microsoft.VisualBasic.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0107" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0107" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\Microsoft.Win32.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0108" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0108" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\Microsoft.Win32.Registry.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0109" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0109" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\mscorlib.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0110" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0110" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\netstandard.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0111" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0111" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.AppContext.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0112" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0112" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Buffers.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0113" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0113" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Collections.Concurrent.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0114" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0114" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Collections.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0115" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0115" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Collections.Immutable.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0116" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0116" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Collections.NonGeneric.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0117" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0117" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Collections.Specialized.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0118" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0118" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.ComponentModel.Annotations.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0119" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0119" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.ComponentModel.DataAnnotations.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0120" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0120" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.ComponentModel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0121" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0121" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.ComponentModel.EventBasedAsync.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0122" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0122" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.ComponentModel.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0123" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0123" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.ComponentModel.TypeConverter.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0124" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0124" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Configuration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0125" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0125" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Console.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0126" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0126" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0127" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0127" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Data.Common.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0128" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0128" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Data.DataSetExtensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0129" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0129" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Data.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0130" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0130" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Diagnostics.Contracts.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0131" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0131" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Diagnostics.Debug.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0132" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0132" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Diagnostics.DiagnosticSource.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0133" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0133" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Diagnostics.FileVersionInfo.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0134" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0134" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Diagnostics.Process.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0135" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0135" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Diagnostics.StackTrace.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0136" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0136" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Diagnostics.TextWriterTraceListener.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0137" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0137" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Diagnostics.Tools.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0138" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0138" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Diagnostics.TraceSource.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0139" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0139" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Diagnostics.Tracing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0140" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0140" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0141" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0141" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Drawing.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0142" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0142" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Drawing.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0143" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0143" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Dynamic.Runtime.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0144" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0144" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Formats.Asn1.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0145" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0145" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Formats.Tar.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0146" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0146" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Globalization.Calendars.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0147" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0147" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Globalization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0148" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0148" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Globalization.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0149" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0149" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.Compression.Brotli.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0150" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0150" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.Compression.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0151" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0151" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.Compression.FileSystem.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0152" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0152" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.Compression.ZipFile.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0153" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0153" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0154" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0154" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.FileSystem.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0155" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0155" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.FileSystem.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0156" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0156" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.FileSystem.DriveInfo.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0157" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0157" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.FileSystem.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0158" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0158" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.FileSystem.Watcher.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0159" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0159" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.IsolatedStorage.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0160" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0160" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.MemoryMappedFiles.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0161" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0161" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.Pipes.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0162" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0162" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.Pipes.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0163" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0163" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.IO.UnmanagedMemoryStream.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0164" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0164" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Linq.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0165" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0165" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Linq.Expressions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0166" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0166" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Linq.Parallel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0167" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0167" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Linq.Queryable.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0168" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0168" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Memory.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0169" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0169" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0170" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0170" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.Http.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0171" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0171" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.Http.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0172" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0172" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.HttpListener.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0173" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0173" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.Mail.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0174" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0174" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.NameResolution.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0175" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0175" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.NetworkInformation.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0176" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0176" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.Ping.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0177" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0177" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0178" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0178" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.Quic.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0179" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0179" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.Requests.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0180" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0180" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.Security.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0181" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0181" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.ServicePoint.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0182" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0182" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.Sockets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0183" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0183" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.WebClient.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0184" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0184" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.WebHeaderCollection.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0185" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0185" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.WebProxy.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0186" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0186" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.WebSockets.Client.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0187" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0187" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Net.WebSockets.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0188" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0188" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Numerics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0189" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0189" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Numerics.Vectors.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0190" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0190" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.ObjectModel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0191" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0191" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Reflection.DispatchProxy.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0192" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0192" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Reflection.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0193" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0193" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Reflection.Emit.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0194" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0194" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Reflection.Emit.ILGeneration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0195" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0195" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Reflection.Emit.Lightweight.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0196" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0196" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Reflection.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0197" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0197" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Reflection.Metadata.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0198" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0198" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Reflection.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0199" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0199" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Reflection.TypeExtensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0200" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0200" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Resources.Reader.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0201" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0201" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Resources.ResourceManager.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0202" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0202" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Resources.Writer.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0203" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0203" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.CompilerServices.Unsafe.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0204" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0204" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.CompilerServices.VisualC.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0205" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0205" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0206" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0206" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0207" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0207" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.Handles.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0208" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0208" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.InteropServices.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0209" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0209" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.InteropServices.JavaScript.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0210" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0210" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.InteropServices.RuntimeInformation.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0211" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0211" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.Intrinsics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0212" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0212" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.Loader.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0213" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0213" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.Numerics.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0214" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0214" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.Serialization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0215" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0215" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.Serialization.Formatters.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0216" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0216" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.Serialization.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0217" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0217" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.Serialization.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0218" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0218" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Runtime.Serialization.Xml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0219" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0219" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0220" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0220" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.Claims.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0221" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0221" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.Cryptography.Algorithms.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0222" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0222" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.Cryptography.Cng.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0223" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0223" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.Cryptography.Csp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0224" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0224" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.Cryptography.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0225" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0225" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.Cryptography.Encoding.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0226" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0226" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.Cryptography.OpenSsl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0227" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0227" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.Cryptography.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0228" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0228" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.Cryptography.X509Certificates.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0229" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0229" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0230" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0230" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.Principal.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0231" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0231" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.Principal.Windows.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0232" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0232" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Security.SecureString.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0233" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0233" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.ServiceModel.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0234" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0234" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.ServiceProcess.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0235" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0235" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Text.Encoding.CodePages.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0236" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0236" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Text.Encoding.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0237" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0237" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Text.Encoding.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0238" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0238" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Text.Encodings.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0239" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0239" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Text.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0240" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0240" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Text.RegularExpressions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0241" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0241" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Threading.Channels.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0242" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0242" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Threading.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0243" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0243" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Threading.Overlapped.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0244" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0244" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Threading.Tasks.Dataflow.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0245" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0245" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Threading.Tasks.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0246" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0246" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Threading.Tasks.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0247" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0247" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Threading.Tasks.Parallel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0248" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0248" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Threading.Thread.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0249" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0249" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Threading.ThreadPool.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0250" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0250" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Threading.Timer.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0251" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0251" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Transactions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0252" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0252" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Transactions.Local.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0253" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0253" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.ValueTuple.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0254" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0254" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0255" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0255" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Web.HttpUtility.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0256" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0256" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Windows.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0257" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0257" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Xml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0258" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0258" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Xml.Linq.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0259" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0259" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Xml.ReaderWriter.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0260" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0260" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Xml.Serialization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0261" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0261" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Xml.XDocument.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0262" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0262" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Xml.XmlDocument.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0263" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0263" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Xml.XmlSerializer.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0264" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0264" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Xml.XPath.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0265" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0265" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\System.Xml.XPath.XDocument.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0266" Guid="*" Directory="DIR_0014">
+        <File Id="FIL_0266" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ref\WindowsBase.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0267" Guid="*" Directory="DIR_0015">
+        <File Id="FIL_0267" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ru\Microsoft.CodeAnalysis.CSharp.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0268" Guid="*" Directory="DIR_0015">
+        <File Id="FIL_0268" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ru\Microsoft.CodeAnalysis.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0269" Guid="*" Directory="DIR_0015">
+        <File Id="FIL_0269" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ru\System.Private.ServiceModel.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0270" Guid="*" Directory="DIR_0015">
+        <File Id="FIL_0270" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\ru\System.Web.Services.Description.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0271" Guid="*" Directory="DIR_0021">
+        <File Id="FIL_0271" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\unix\lib\net8.0\Modules\Microsoft.PowerShell.Host\Microsoft.PowerShell.Host.psd1" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0272" Guid="*" Directory="DIR_0022">
+        <File Id="FIL_0272" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\unix\lib\net8.0\Modules\Microsoft.PowerShell.Management\Microsoft.PowerShell.Management.psd1" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0273" Guid="*" Directory="DIR_0023">
+        <File Id="FIL_0273" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\unix\lib\net8.0\Modules\Microsoft.PowerShell.Security\Microsoft.PowerShell.Security.psd1" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0274" Guid="*" Directory="DIR_0024">
+        <File Id="FIL_0274" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\unix\lib\net8.0\Modules\Microsoft.PowerShell.Utility\Microsoft.PowerShell.Utility.psd1" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0275" Guid="*" Directory="DIR_0029">
+        <File Id="FIL_0275" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\CimCmdlets\CimCmdlets.psd1" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0276" Guid="*" Directory="DIR_0030">
+        <File Id="FIL_0276" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\Microsoft.PowerShell.Diagnostics\Diagnostics.format.ps1xml" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0277" Guid="*" Directory="DIR_0030">
+        <File Id="FIL_0277" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\Microsoft.PowerShell.Diagnostics\Event.format.ps1xml" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0278" Guid="*" Directory="DIR_0030">
+        <File Id="FIL_0278" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\Microsoft.PowerShell.Diagnostics\GetEvent.types.ps1xml" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0279" Guid="*" Directory="DIR_0030">
+        <File Id="FIL_0279" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\Microsoft.PowerShell.Diagnostics\Microsoft.PowerShell.Diagnostics.psd1" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0280" Guid="*" Directory="DIR_0031">
+        <File Id="FIL_0280" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\Microsoft.PowerShell.Host\Microsoft.PowerShell.Host.psd1" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0281" Guid="*" Directory="DIR_0032">
+        <File Id="FIL_0281" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\Microsoft.PowerShell.Management\Microsoft.PowerShell.Management.psd1" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0282" Guid="*" Directory="DIR_0033">
+        <File Id="FIL_0282" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\Microsoft.PowerShell.Security\Microsoft.PowerShell.Security.psd1" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0283" Guid="*" Directory="DIR_0033">
+        <File Id="FIL_0283" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\Microsoft.PowerShell.Security\Security.types.ps1xml" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0284" Guid="*" Directory="DIR_0034">
+        <File Id="FIL_0284" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\Microsoft.PowerShell.Utility\Microsoft.PowerShell.Utility.psd1" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0285" Guid="*" Directory="DIR_0035">
+        <File Id="FIL_0285" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\Microsoft.WSMan.Management\Microsoft.WSMan.Management.psd1" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0286" Guid="*" Directory="DIR_0035">
+        <File Id="FIL_0286" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\Microsoft.WSMan.Management\WSMan.format.ps1xml" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0287" Guid="*" Directory="DIR_0036">
+        <File Id="FIL_0287" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\PSDiagnostics\PSDiagnostics.psd1" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0288" Guid="*" Directory="DIR_0036">
+        <File Id="FIL_0288" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\runtimes\win\lib\net8.0\Modules\PSDiagnostics\PSDiagnostics.psm1" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0289" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0289" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\sni.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0290" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0290" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Swashbuckle.AspNetCore.Swagger.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0291" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0291" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Swashbuckle.AspNetCore.SwaggerGen.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0292" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0292" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\Swashbuckle.AspNetCore.SwaggerUI.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0293" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0293" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.CodeDom.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0294" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0294" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.ComponentModel.Composition.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0295" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0295" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.ComponentModel.Composition.Registration.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0296" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0296" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Configuration.ConfigurationManager.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0297" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0297" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Data.Odbc.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0298" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0298" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Data.OleDb.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0299" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0299" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Data.SqlClient.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0300" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0300" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Diagnostics.EventLog.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0301" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0301" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Diagnostics.PerformanceCounter.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0302" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0302" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.DirectoryServices.AccountManagement.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0303" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0303" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.DirectoryServices.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0304" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0304" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.DirectoryServices.Protocols.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0305" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0305" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Drawing.Common.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0306" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0306" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.IO.Packaging.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0307" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0307" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.IO.Ports.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0308" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0308" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Management.Automation.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0309" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0309" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Management.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0310" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0310" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Net.Http.WinHttpHandler.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0311" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0311" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Private.ServiceModel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0312" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0312" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Private.Windows.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0313" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0313" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Reflection.Context.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0314" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0314" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Runtime.Caching.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0315" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0315" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Security.Cryptography.Pkcs.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0316" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0316" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Security.Cryptography.ProtectedData.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0317" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0317" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Security.Cryptography.Xml.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0318" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0318" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Security.Permissions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0319" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0319" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.ServiceModel.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0320" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0320" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.ServiceModel.Duplex.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0321" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0321" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.ServiceModel.Http.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0322" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0322" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.ServiceModel.NetTcp.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0323" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0323" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.ServiceModel.Primitives.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0324" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0324" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.ServiceModel.Security.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0325" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0325" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.ServiceModel.Syndication.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0326" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0326" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.ServiceProcess.ServiceController.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0327" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0327" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Speech.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0328" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0328" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Threading.AccessControl.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0329" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0329" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Web.Services.Description.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0330" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0330" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\System.Windows.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0331" Guid="*" Directory="DIR_0037">
+        <File Id="FIL_0331" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\tr\Microsoft.CodeAnalysis.CSharp.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0332" Guid="*" Directory="DIR_0037">
+        <File Id="FIL_0332" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\tr\Microsoft.CodeAnalysis.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0333" Guid="*" Directory="DIR_0037">
+        <File Id="FIL_0333" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\tr\System.Private.ServiceModel.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0334" Guid="*" Directory="DIR_0037">
+        <File Id="FIL_0334" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\tr\System.Web.Services.Description.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0335" Guid="*" Directory="INSTALLFOLDER">
+        <File Id="FIL_0335" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\web.config" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0336" Guid="*" Directory="DIR_0039">
+        <File Id="FIL_0336" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\wwwroot\css\app.css" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0337" Guid="*" Directory="DIR_0040">
+        <File Id="FIL_0337" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\zh-Hans\Microsoft.CodeAnalysis.CSharp.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0338" Guid="*" Directory="DIR_0040">
+        <File Id="FIL_0338" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\zh-Hans\Microsoft.CodeAnalysis.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0339" Guid="*" Directory="DIR_0040">
+        <File Id="FIL_0339" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\zh-Hans\System.Private.ServiceModel.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0340" Guid="*" Directory="DIR_0040">
+        <File Id="FIL_0340" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\zh-Hans\System.Web.Services.Description.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0341" Guid="*" Directory="DIR_0041">
+        <File Id="FIL_0341" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\zh-Hant\Microsoft.CodeAnalysis.CSharp.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0342" Guid="*" Directory="DIR_0041">
+        <File Id="FIL_0342" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\zh-Hant\Microsoft.CodeAnalysis.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0343" Guid="*" Directory="DIR_0041">
+        <File Id="FIL_0343" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\zh-Hant\System.Private.ServiceModel.resources.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CMP_0344" Guid="*" Directory="DIR_0041">
+        <File Id="FIL_0344" Source="C:\Users\zac\AppData\Local\Temp\DnsGoBetween\publish\zh-Hant\System.Web.Services.Description.resources.dll" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

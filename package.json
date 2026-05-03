@@ -1,0 +1,11 @@
+{
+  "name": "dns-go-between",
+  "private": true,
+  "scripts": {
+    "test:browser": "playwright test ui-tests/dns-manager.spec.js",
+    "test:browser:headed": "playwright test ui-tests/dns-manager.spec.js --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2"
+  }
+}

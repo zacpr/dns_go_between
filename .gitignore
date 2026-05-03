@@ -1,0 +1,45 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Node / Playwright artifacts
+node_modules/
+playwright-report/
+test-results/
+coverage/
+
+# .NET build artifacts
+**/bin/
+**/obj/
+TestResults/
+
+# Project build and packaging output
+dist/
+publish/
+*.msi
+*.nupkg
+*.snupkg
+*.wixobj
+*.wixpdb
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+build_log.txt
+build_out.txt
+
+# Local environment and secret material
+.env
+.env.*
+*.local
+*.key
+*.pem
+*.pfx
+*.p12
+*.secret.json
+*secrets*.json
+appsettings.Local.json
+appsettings.*.local.json

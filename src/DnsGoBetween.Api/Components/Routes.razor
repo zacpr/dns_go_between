@@ -1,0 +1,22 @@
+<Router AppAssembly="typeof(App).Assembly">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                <div class="auth-denied">
+                    <h2>Access Denied</h2>
+                    <p>You are not authorised to view this page. Contact your DNS administrator.</p>
+                </div>
+            </NotAuthorized>
+            <Authorizing>
+                <p>Verifying identity&hellip;</p>
+            </Authorizing>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not Found</PageTitle>
+        <LayoutView Layout="typeof(Layout.MainLayout)">
+            <p>Sorry, there&rsquo;s nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
