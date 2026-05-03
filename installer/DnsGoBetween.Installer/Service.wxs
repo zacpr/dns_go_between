@@ -29,8 +29,7 @@
           Type="ownProcess"
           Start="auto"
           ErrorControl="normal"
-          Account="[SERVICE_ACCOUNT]"
-          Password="[SERVICE_PASSWORD]" />
+          Account="LocalSystem" />
 
         <!--
           Stop="both"      — stop the service on both uninstall and upgrades.
@@ -39,6 +38,7 @@
         <ServiceControl
           Id="SvcControl"
           Name="DnsGoBetween"
+          Start="install"
           Stop="both"
           Remove="uninstall"
           Wait="yes" />
