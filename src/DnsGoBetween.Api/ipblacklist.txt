@@ -1,5 +1,9 @@
 # DNS Go-Between IP blacklist
 # Comma/semicolon/newline-separated IPs or CIDRs.
+#
+# Use only ONE list at a time (whitelist OR blacklist).
+# If both files have active rules, whitelist takes precedence.
+#
 # Any matching address is denied.
 #
 # Examples:

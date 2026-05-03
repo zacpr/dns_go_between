@@ -15,6 +15,7 @@ public sealed class FileIpAccessPolicy
     private IReadOnlyList<IpRangeRule> _whitelist = [];
     private IReadOnlyList<IpRangeRule> _blacklist = [];
     private bool _whitelistFilePresent;
+    private bool _blacklistFilePresent;
 
     public FileIpAccessPolicy(ILogger<FileIpAccessPolicy> logger)
     {
@@ -34,8 +35,16 @@ public sealed class FileIpAccessPolicy
 
         var normalized = NormalizeAddress(remoteIp);
 
-        if (_whitelistFilePresent && _whitelist.Count > 0 && !_whitelist.Any(rule => rule.Contains(normalized)))
+        // Whitelist precedence: when active, only whitelisted addresses are allowed,
+        // and blacklist is ignored for access decisions.
+        if (_whitelistFilePresent && _whitelist.Count > 0)
         {
+            if (_whitelist.Any(rule => rule.Contains(normalized)))
+            {
+                reason = string.Empty;
+                return true;
+            }
+
             reason = $"IP '{normalized}' is not in ipwhitelist.txt.";
             return false;
         }
@@ -75,13 +84,21 @@ public sealed class FileIpAccessPolicy
         var blacklistPath = Path.Combine(_installDir, "ipblacklist.txt");
 
         _whitelistFilePresent = File.Exists(whitelistPath);
+        _blacklistFilePresent = File.Exists(blacklistPath);
         _whitelist = ParseRulesFromFile(whitelistPath);
         _blacklist = ParseRulesFromFile(blacklistPath);
 
+        if (_whitelistFilePresent && _whitelist.Count > 0 && _blacklistFilePresent && _blacklist.Count > 0)
+        {
+            _logger.LogWarning(
+                "Both ipwhitelist.txt and ipblacklist.txt contain active rules. Use one list at a time; whitelist takes precedence.");
+        }
+
         _logger.LogInformation(
-            "IP access policy loaded. whitelistFilePresent={WhitelistFilePresent}, whitelistRules={WhitelistRules}, blacklistRules={BlacklistRules}",
+            "IP access policy loaded. whitelistFilePresent={WhitelistFilePresent}, whitelistRules={WhitelistRules}, blacklistFilePresent={BlacklistFilePresent}, blacklistRules={BlacklistRules}",
             _whitelistFilePresent,
             _whitelist.Count,
+            _blacklistFilePresent,
             _blacklist.Count);
     }
 

@@ -279,3 +279,25 @@ The installer creates a Windows Firewall inbound rule for TCP 6790. Verify it ex
 ```powershell
 Get-NetFirewallRule -DisplayName "DNS Go-Between HTTP"
 ```
+
+## IP Access Lists
+
+You can control client access with files in the install directory:
+
+- `ipwhitelist.txt`
+- `ipblacklist.txt`
+
+Rules can be comma/semicolon/newline separated and support single IPs or CIDRs.
+
+Use only one list at a time. If both files contain active rules, whitelist takes precedence.
+
+## IP Access Lists
+
+You can control client access with files in the install directory:
+
+- `ipwhitelist.txt`
+- `ipblacklist.txt`
+
+Rules can be comma/semicolon/newline separated and support single IPs or CIDRs.
+
+Use only one list at a time. If both files contain active rules, whitelist takes precedence.

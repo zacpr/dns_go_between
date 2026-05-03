@@ -1,6 +1,10 @@
 # DNS Go-Between IP whitelist
 # Comma/semicolon/newline-separated IPs or CIDRs.
-# If this file exists and contains at least one active entry,
+#
+# Use only ONE list at a time (whitelist OR blacklist).
+# If both files have active rules, whitelist takes precedence.
+#
+# If this file has at least one active entry,
 # only those addresses can connect.
 #
 # Examples:
