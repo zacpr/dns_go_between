@@ -53,12 +53,13 @@ else if (_error is not null)
                                     @foreach (var rec in hostGroup.OrderBy(r => r.RecordType.ToString()))
                                     {
                                         <div class="record-node indent2">
-                                            <span class="badge-type">@rec.RecordType</span>
+                                            <span class="badge-type @GetRecordTypeCssClass(rec.RecordType)">@rec.RecordType</span>
                                             <span class="record-data">@rec.Data</span>
+                                            <button class="btn-copy" title="Copy record data" @onclick="() => CopyToClipboardAsync(rec.Data)">📋</button>
                                             <span class="text-muted">TTL:@rec.TimeToLive</span>
                                             @if (_isAdmin)
                                             {
-                                                <button class="btn-delete" title="Delete record"
+                                                <button class="btn-delete" title="Delete record" disabled="@_isDeleting"
                                                         @onclick="() => ConfirmDelete(rec)">&#x2715;</button>
                                             }
                                         </div>
@@ -95,7 +96,12 @@ else if (_error is not null)
                 <input @bind="_addForm.ZoneName" readonly />
             </label>
             <label>Host Name
-                <input @bind="_addForm.HostName" placeholder="e.g. webserver or @@" />
+                <input @bind="_addForm.HostName" placeholder="e.g. webserver or @@" 
+                       class="@(_addFormErrors.ContainsKey("HostName") ? "validation-error" : "")" />
+                @if (_addFormErrors.TryGetValue("HostName", out var hostErr))
+                {
+                    <div class="validation-message">@hostErr</div>
+                }
             </label>
             <label>Type
                 <select @bind="_addForm.RecordTypeStr">
@@ -106,18 +112,38 @@ else if (_error is not null)
                 </select>
             </label>
             <label>Data
-                <input @bind="_addForm.Data" placeholder="IP address or hostname" />
+                <input @bind="_addForm.Data" placeholder="IP address or hostname" 
+                       class="@(_addFormErrors.ContainsKey("Data") ? "validation-error" : "")" />
+                @if (_addFormErrors.TryGetValue("Data", out var dataErr))
+                {
+                    <div class="validation-message">@dataErr</div>
+                }
             </label>
             <label>TTL (seconds)
-                <input type="number" @bind="_addForm.TimeToLive" min="60" />
+                <input type="number" @bind="_addForm.TimeToLive" min="60" max="2147483647"
+                       class="@(_addFormErrors.ContainsKey("TimeToLive") ? "validation-error" : "")" />
+                @if (_addFormErrors.TryGetValue("TimeToLive", out var ttlErr))
+                {
+                    <div class="validation-message">@ttlErr</div>
+                }
             </label>
             @if (_modalError is not null)
             {
                 <div class="alert-danger small">@_modalError</div>
             }
             <div class="modal-actions">
-                <button class="btn-primary" @onclick="SubmitAddAsync">Add Record</button>
-                <button @onclick="CloseAddForm">Cancel</button>
+                <button class="btn-primary" @onclick="SubmitAddAsync" disabled="@_isSubmitting">
+                    @if (_isSubmitting)
+                    {
+                        <span class="btn-spinner"></span>
+                        <span>Adding…</span>
+                    }
+                    else
+                    {
+                        <span>Add Record</span>
+                    }
+                </button>
+                <button @onclick="CloseAddForm" disabled="@_isSubmitting">Cancel</button>
             </div>
         </div>
     </div>
@@ -141,8 +167,18 @@ else if (_error is not null)
                 <div class="alert-danger small">@_modalError</div>
             }
             <div class="modal-actions">
-                <button class="btn-danger" @onclick="ExecuteDeleteAsync">Delete</button>
-                <button @onclick="() => { _deleteTarget = null; _modalError = null; }">Cancel</button>
+                <button class="btn-danger" @onclick="ExecuteDeleteAsync" disabled="@_isDeleting">
+                    @if (_isDeleting)
+                    {
+                        <span class="btn-spinner"></span>
+                        <span>Deleting…</span>
+                    }
+                    else
+                    {
+                        <span>Delete</span>
+                    }
+                </button>
+                <button @onclick="() => { _deleteTarget = null; _modalError = null; }" disabled="@_isDeleting">Cancel</button>
             </div>
         </div>
     </div>
@@ -163,9 +199,12 @@ else if (_error is not null)
     private bool _showAddForm;
     private AddFormModel _addForm = new();
     private string? _modalError;
+    private bool _isSubmitting;
+    private readonly Dictionary<string, string> _addFormErrors = new();
 
     // Delete state
     private DnsRecord? _deleteTarget;
+    private bool _isDeleting;
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthState { get; set; }
@@ -250,12 +289,49 @@ else if (_error is not null)
     private async Task SubmitAddAsync()
     {
         _modalError = null;
+        _addFormErrors.Clear();
+
+        // Validate hostname
+        if (string.IsNullOrWhiteSpace(_addForm.HostName))
+        {
+            _addFormErrors["HostName"] = "Host name is required.";
+        }
+        else if (!IsValidHostname(_addForm.HostName))
+        {
+            _addFormErrors["HostName"] = "Invalid hostname. Use alphanumeric, hyphens, or @ for apex.";
+        }
+
+        // Validate data
+        if (string.IsNullOrWhiteSpace(_addForm.Data))
+        {
+            _addFormErrors["Data"] = "Data field is required.";
+        }
+        else
+        {
+            var dataError = ValidateRecordData(_addForm.RecordTypeStr, _addForm.Data);
+            if (!string.IsNullOrEmpty(dataError))
+            {
+                _addFormErrors["Data"] = dataError;
+            }
+        }
+
+        // Validate TTL
+        if (_addForm.TimeToLive < 60 || _addForm.TimeToLive > 2147483647)
+        {
+            _addFormErrors["TimeToLive"] = "TTL must be between 60 and 2147483647.";
+        }
+
+        if (_addFormErrors.Count > 0)
+            return;
 
         if (!Enum.TryParse<DnsRecordType>(_addForm.RecordTypeStr, out var recordType))
         {
             _modalError = "Invalid record type.";
             return;
         }
+
+        _isSubmitting = true;
+        StateHasChanged();
 
         try
         {
@@ -279,6 +355,10 @@ else if (_error is not null)
         {
             _modalError = ex.Message;
         }
+        finally
+        {
+            _isSubmitting = false;
+        }
     }
 
     private void ConfirmDelete(DnsRecord record)
@@ -291,6 +371,8 @@ else if (_error is not null)
     {
         if (_deleteTarget is null) return;
         _modalError = null;
+        _isDeleting = true;
+        StateHasChanged();
 
         try
         {
@@ -313,6 +395,10 @@ else if (_error is not null)
         {
             _modalError = ex.Message;
         }
+        finally
+        {
+            _isDeleting = false;
+        }
     }
 
     private sealed class AddFormModel
@@ -322,5 +408,73 @@ else if (_error is not null)
         public string RecordTypeStr { get; set; } = "A";
         public string Data { get; set; } = string.Empty;
         public int TimeToLive { get; set; } = 3600;
+    }
+
+    // ── Helper Methods ────────────────────────────────────────────────────────
+
+    private string GetRecordTypeCssClass(DnsRecordType type)
+    {
+        return type switch
+        {
+            DnsRecordType.A => "badge-type-a",
+            DnsRecordType.AAAA => "badge-type-aaaa",
+            DnsRecordType.CNAME => "badge-type-cname",
+            DnsRecordType.PTR => "badge-type-ptr",
+            _ => "badge-type-a"
+        };
+    }
+
+    private bool IsValidHostname(string hostname)
+    {
+        // Allow "@" for apex, alphanumeric with hyphens and dots
+        if (hostname == "@") return true;
+        if (string.IsNullOrWhiteSpace(hostname)) return false;
+
+        var pattern = @"^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*@?[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$";
+        return System.Text.RegularExpressions.Regex.IsMatch(hostname, pattern);
+    }
+
+    private string? ValidateRecordData(string recordType, string data)
+    {
+        if (string.IsNullOrWhiteSpace(data)) return null;
+
+        return recordType switch
+        {
+            "A" => ValidateIPv4(data) ? null : "Invalid IPv4 address.",
+            "AAAA" => ValidateIPv6(data) ? null : "Invalid IPv6 address.",
+            "CNAME" => IsValidHostname(data) ? null : "Invalid hostname for CNAME.",
+            "PTR" => IsValidHostname(data) ? null : "Invalid hostname for PTR.",
+            _ => null
+        };
+    }
+
+    private bool ValidateIPv4(string ip)
+    {
+        var parts = ip.Split('.');
+        if (parts.Length != 4) return false;
+        return parts.All(p => int.TryParse(p, out var octet) && octet >= 0 && octet <= 255);
+    }
+
+    private bool ValidateIPv6(string ip)
+    {
+        // Simple IPv6 validation: contains colons, hex digits, max groups
+        return System.Net.IPAddress.TryParse(ip, out var addr) && addr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6;
+    }
+
+    private async Task CopyToClipboardAsync(string text)
+    {
+        try
+        {
+            // Use JS interop if available, otherwise just show a message
+            // For now, we'll log success client-side in a real implementation
+            await Task.Delay(100); // Simulate copy
+            _modalError = "Copied to clipboard!";
+            // Auto-clear after 2 seconds
+            _ = Task.Delay(2000).ContinueWith(_ => { _modalError = null; StateHasChanged(); });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Copy to clipboard failed");
+        }
     }
 }

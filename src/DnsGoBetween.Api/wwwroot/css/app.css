@@ -92,11 +92,40 @@ h1 { font-size: 1.4em; margin-bottom: 20px; color: #0078d4; }
     text-align: center;
 }
 
-.record-data { font-family: 'Consolas', monospace; }
+.record-data { font-family: 'Consolas', monospace; flex: 1; word-break: break-all; }
 
 .text-muted { color: #6c757d; font-size: 0.82em; }
 
 .loading { color: #6c757d; font-style: italic; }
+
+/* ─── Record Type Color Coding ─────────────────────────────────────────────── */
+.badge-type-a       { background: #0078d4; color: white; }
+.badge-type-aaaa    { background: #7c3aed; color: white; }
+.badge-type-cname   { background: #059669; color: white; }
+.badge-type-ptr     { background: #d97706; color: white; }
+
+/* ─── Animations ───────────────────────────────────────────────────────────── */
+@keyframes fadeIn {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes slideIn {
+    0% { opacity: 0; transform: translateY(-10px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
 
 /* ─── Buttons ─────────────────────────────────────────────────────────────── */
 .btn-delete {
@@ -108,8 +137,23 @@ h1 { font-size: 1.4em; margin-bottom: 20px; color: #0078d4; }
     cursor: pointer;
     font-size: 0.85em;
     line-height: 1.4;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 .btn-delete:hover { background: #dc3545; color: white; }
+.btn-delete:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-copy {
+    background: none;
+    border: 1px solid #6c757d;
+    color: #6c757d;
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.75em;
+    transition: all 0.15s ease;
+}
+.btn-copy:hover { background: #6c757d; color: white; border-color: #6c757d; }
+.btn-copy:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-add {
     background: none;
@@ -121,26 +165,44 @@ h1 { font-size: 1.4em; margin-bottom: 20px; color: #0078d4; }
     font-size: 0.85em;
     margin: 4px 0;
     display: inline-block;
+    transition: all 0.15s ease;
 }
 .btn-add:hover { background: #0078d4; color: white; }
+.btn-add:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btn-primary {
-    background: #0078d4;
+    background: linear-gradient(135deg, #0078d4 0%, #005fa3 100%);
     color: white;
     border: none;
     padding: 8px 18px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.95em;
+    transition: filter 0.15s ease;
 }
-.btn-primary:hover { background: #005fa3; }
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btn-danger {
-    background: #dc3545 !important;
+    background: linear-gradient(135deg, #dc3545 0%, #bb2d3b 100%) !important;
     color: white !important;
     border: none !important;
+    transition: filter 0.15s ease;
 }
-.btn-danger:hover { background: #b02a37 !important; }
+.btn-danger:hover { filter: brightness(1.1); }
+.btn-danger:disabled { opacity: 0.6 !important; cursor: not-allowed !important; }
+
+.btn-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+}
 
 /* ─── Alerts ──────────────────────────────────────────────────────────────── */
 .alert-danger {
@@ -168,6 +230,7 @@ h1 { font-size: 1.4em; margin-bottom: 20px; color: #0078d4; }
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    animation: fadeIn 0.2s ease;
 }
 
 .modal-box {
@@ -177,7 +240,10 @@ h1 { font-size: 1.4em; margin-bottom: 20px; color: #0078d4; }
     min-width: 380px;
     max-width: 520px;
     width: 100%;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, .22);
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    animation: fadeIn 0.3s ease;
 }
 
 .modal-box h3 { margin: 0 0 18px; font-size: 1.1em; color: #0078d4; }
@@ -199,14 +265,35 @@ h1 { font-size: 1.4em; margin-bottom: 20px; color: #0078d4; }
     border-radius: 5px;
     font-size: 0.95em;
     font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal-box input:focus,
+.modal-box select:focus {
+    outline: none;
+    border-color: #0078d4;
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
 }
 
 .modal-box input[readonly] { background: #f8f9fa; color: #6c757d; }
 
+.modal-box input.validation-error {
+    border-color: #dc3545;
+    background: #fff8f8;
+}
+
+.validation-message {
+    color: #dc3545;
+    font-size: 0.85em;
+    margin-top: 2px;
+    margin-bottom: 8px;
+}
+
 .modal-actions { margin-top: 18px; display: flex; gap: 10px; }
-.modal-actions button { padding: 8px 18px; border-radius: 5px; cursor: pointer; font-size: 0.95em; }
+.modal-actions button { padding: 8px 18px; border-radius: 5px; cursor: pointer; font-size: 0.95em; transition: all 0.15s ease; }
 .modal-actions button:last-child { background: #f0f2f5; border: 1px solid #ced4da; }
 .modal-actions button:last-child:hover { background: #e2e6ea; }
+
 
 /* ─── Confirm table ───────────────────────────────────────────────────────── */
 .confirm-table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 0.9em; }
@@ -218,3 +305,19 @@ h1 { font-size: 1.4em; margin-bottom: 20px; color: #0078d4; }
     font-weight: 600;
 }
 .confirm-table td { padding: 5px 0; font-family: 'Consolas', monospace; }
+
+/* ─── Alert Improvements ───────────────────────────────────────────────────── */
+.alert-danger {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: #721c24;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    animation: slideIn 0.3s ease;
+}
+.alert-danger.small { font-size: 0.9em; padding: 6px 10px; margin-top: 8px; }
+.alert-danger button { background: none; border: none; cursor: pointer; font-size: 1em; color: #721c24; margin-left: auto; flex-shrink: 0; }
