@@ -12,6 +12,37 @@ It runs on the DNS server, uses local PowerShell DNS cmdlets, and is packaged as
 - Exposes API endpoints for automation/scripts
 - Enforces authz, zone/type controls, and optional IP access controls
 
+## Automated certificate issuance (ACME DNS-01)
+
+DNS Go-Between ships with ready-made **PowerShell hooks** in the `acme/` directory that let any ACME client obtain and renew TLS certificates via DNS-01 validation — no inbound HTTP port required.
+
+Because DNS-01 works by publishing a `_acme-challenge` TXT record, DNS Go-Between's REST API is the automation layer: the hooks call `POST /api/records` to create the challenge and `DELETE /api/records` to clean up.
+
+### Why this matters
+
+- Works for **wildcard certificates** (`*.example.com`) — the only ACME challenge type that does
+- Works from **air-gapped or internally-facing servers** with no public HTTP(S) port
+- No ACME client needs direct access to the DNS server — it only needs HTTPS to the API
+- Supports Certbot, win-acme, acme.sh, or any tool that supports a script/hook model
+
+### Quick start
+
+```powershell
+$env:DNSGOBET_URL  = "https://your-dns-server:6790"
+$env:DNSGOBET_USER = "dnsadmin"
+$env:DNSGOBET_PASS = "s3cret"
+
+# Certbot
+certbot certonly --manual --preferred-challenges dns `
+    --manual-auth-hook    "pwsh -File acme/dns-challenge-create.ps1" `
+    --manual-cleanup-hook "pwsh -File acme/dns-challenge-delete.ps1" `
+    -d example.com -d "*.example.com"
+```
+
+See [`acme/README.md`](acme/README.md) for full examples including win-acme, acme.sh, and troubleshooting.
+
+---
+
 ## Resource requirements
 
 Typical footprint on a small-to-medium DNS server:
@@ -157,6 +188,8 @@ Restart-Service DnsGoBetween
 - `GET /api/zones/{zone}/records`
 - `POST /api/records`
 - `DELETE /api/records`
+
+All write endpoints require a member of `DnsAdmins` or `Domain Admins`. The `POST` / `DELETE` endpoints support TXT records, which makes the API suitable as an ACME DNS-01 backend — see [Automated certificate issuance](#automated-certificate-issuance-acme-dns-01) above.
 
 Swagger (Development environment):
 
