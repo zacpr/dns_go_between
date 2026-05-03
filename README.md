@@ -28,14 +28,26 @@ DNS Go-Between is HTTPS-first by default.
 
 - Default listener: `https://0.0.0.0:6790`
 - HTTP is disabled by default (`Tls:EnableHttp=false`)
-- Installer prompts for HTTPS port
+- Installer prompts for allowed zones, HTTPS port, and certificate source
 - If both `ipwhitelist.txt` and `ipblacklist.txt` contain active rules, whitelist takes precedence
+- `/health/live` and `/health/ready` are restricted to loopback callers only
+
+Additional hardening in current builds:
+
+- Structured audit logging for write operations (add/delete) with correlation IDs
+- Sanitized API error payloads (no raw stack traces or internal command output)
+- Startup diagnostics logs include listener mode, TLS source, and redirect settings
 
 ## Authentication and authorization
 
 - Authentication:
   - Windows Negotiate (Kerberos/NTLM)
   - HTTP Basic (for non-domain/proxied clients)
+  - Basic auth can be disabled (`Auth:EnableBasicAuthentication=false`)
+  - Basic auth can require TLS (`Auth:RequireHttpsForBasicAuthentication=true`)
+  - Basic auth supports per-client lockout controls:
+    - `Auth:BasicAuthenticationFailureLimit`
+    - `Auth:BasicAuthenticationLockoutSeconds`
 - Authorization:
   - Read access: authenticated users
   - Write access (`POST` / `DELETE`): `DnsAdmins` or `Domain Admins`
@@ -46,8 +58,8 @@ At startup, certificate resolution is:
 
 1. External PFX (`Tls:Certificate:PfxPath` + `PfxPassword`)
 2. Explicit store selection (`StoreName`, `StoreLocation`, `Thumbprint` or `Subject`)
-3. Automatic machine cert discovery from LocalMachine\My based on host/FQDN
-4. If none are found, Kestrel default HTTPS certificate handling applies
+3. Automatic machine cert discovery from LocalMachine\My based on host/FQDN (if `Tls:AutoSelectMachineCertificate=true`)
+4. If no certificate is available, primary listener falls back to HTTP on the configured primary port to preserve reachability
 
 ### Example TLS config
 
@@ -56,6 +68,8 @@ At startup, certificate resolution is:
   "HttpsPort": 6790,
   "EnableHttp": false,
   "HttpPort": 0,
+  "RedirectHttpToHttps": false,
+  "AutoSelectMachineCertificate": true,
   "Certificate": {
     "StoreName": "My",
     "StoreLocation": "LocalMachine",
@@ -152,6 +166,8 @@ Health:
 
 - `/health/live`
 - `/health/ready`
+
+Note: health endpoints are intentionally loopback-only (not remotely reachable).
 
 ## Build and test
 
