@@ -224,6 +224,17 @@ else if (_error is not null)
     </div>
 }
 
+@* ── Toast Notifications ──────────────────────────────────────────────────── *@
+<div class="toast-container">
+    @foreach (var toast in _toasts)
+    {
+        <div class="toast toast-@toast.Type.ToString().ToLower()" role="alert">
+            <span class="toast-message">@toast.Message</span>
+            <button class="btn-close-toast" @onclick="() => RemoveToast(toast.Id)" aria-label="Close notification">✕</button>
+        </div>
+    }
+</div>
+
 @code {
     private IReadOnlyList<DnsZone> _zones = [];
     private bool _loading = true;
@@ -240,9 +251,14 @@ else if (_error is not null)
     private int _searchResults;
     private ElementReference _searchInput;
 
+    // Toast state
+    private readonly List<Toast> _toasts = new();
+    private int _nextToastId;
+
     // Add form state
     private bool _showAddForm;
     private AddFormModel _addForm = new();
+    
     private string? _modalError;
     private bool _isSubmitting;
     private readonly Dictionary<string, string> _addFormErrors = new();
@@ -358,12 +374,14 @@ else if (_error is not null)
             _zoneRecords.Remove(_addForm.ZoneName);
             _expandedZones.Add(_addForm.ZoneName);
             _zoneRecords[_addForm.ZoneName] = await DnsService.ListRecordsAsync(_addForm.ZoneName);
+            ShowSuccessToast($"Record created: {_addForm.HostName} ({_addForm.RecordTypeStr})");
 
             _showAddForm = false;
         }
         catch (Exception ex)
         {
             _modalError = ex.Message;
+                    ShowErrorToast($"Failed to create record: {ex.Message}");
         }
         finally
         {
@@ -400,6 +418,8 @@ else if (_error is not null)
             _zoneRecords[zone] = await DnsService.ListRecordsAsync(zone);
 
             _deleteTarget = null;
+                    ShowSuccessToast($"Record deleted: {_deleteTarget?.HostName} ({_deleteTarget?.RecordType})");
+                    ShowErrorToast($"Failed to delete record: {ex.Message}");
         }
         catch (Exception ex)
         {
@@ -409,6 +429,21 @@ else if (_error is not null)
         {
             _isDeleting = false;
         }
+    }
+
+    private sealed class Toast
+    {
+        public int Id { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public ToastType Type { get; set; } = ToastType.Info;
+    }
+
+    private enum ToastType
+    {
+        Success,
+        Error,
+        Warning,
+        Info
     }
 
     private sealed class AddFormModel
@@ -626,6 +661,48 @@ else if (_error is not null)
         if (!_expandedHosts.Add(hostKey))
         {
             _expandedHosts.Remove(hostKey);
+        }
+    }
+
+    // ── Toast Methods ────────────────────────────────────────────────────────
+
+    private void ShowToast(string message, ToastType type = ToastType.Info, int durationMs = 3000)
+    {
+        var toast = new Toast
+        {
+            Id = _nextToastId++,
+            Message = message,
+            Type = type
+        };
+        _toasts.Add(toast);
+        StateHasChanged();
+
+        // Auto-remove after duration
+        _ = Task.Delay(durationMs).ContinueWith(_ =>
+        {
+            RemoveToast(toast.Id);
+        });
+    }
+
+    private void ShowSuccessToast(string message, int durationMs = 3000)
+        => ShowToast(message, ToastType.Success, durationMs);
+
+    private void ShowErrorToast(string message, int durationMs = 4000)
+        => ShowToast(message, ToastType.Error, durationMs);
+
+    private void ShowWarningToast(string message, int durationMs = 3500)
+        => ShowToast(message, ToastType.Warning, durationMs);
+
+    private void ShowInfoToast(string message, int durationMs = 3000)
+        => ShowToast(message, ToastType.Info, durationMs);
+
+    private void RemoveToast(int id)
+    {
+        var toast = _toasts.FirstOrDefault(t => t.Id == id);
+        if (toast is not null)
+        {
+            _toasts.Remove(toast);
+            StateHasChanged();
         }
     }
 }
