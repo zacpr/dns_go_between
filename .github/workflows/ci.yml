@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore test project
+        run: dotnet restore tests/DnsGoBetween.Tests/DnsGoBetween.Tests.csproj
+
+      - name: Build test project
+        run: dotnet build tests/DnsGoBetween.Tests/DnsGoBetween.Tests.csproj --configuration Release --no-restore
+
+      - name: Run unit tests
+        run: dotnet test tests/DnsGoBetween.Tests/DnsGoBetween.Tests.csproj --configuration Release --no-build --verbosity normal
