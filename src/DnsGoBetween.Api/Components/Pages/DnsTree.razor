@@ -1,8 +1,10 @@
 @using DnsGoBetween.Core.Interfaces
 @using DnsGoBetween.Core.Models
+@using DnsGoBetween.Core.Configuration
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.JSInterop
+@using Microsoft.Extensions.Options
 @page "/"
 @page "/dns"
 @attribute [Authorize]
@@ -10,6 +12,7 @@
 @inject IDnsRecordService DnsService
 @inject ILogger<DnsTree> Logger
 @inject IJSRuntime JS
+@inject IOptions<DnsOptions> DnsOptionsAccessor
 
 <PageTitle>DNS Manager</PageTitle>
 <div class="dns-page @(_isDarkMode ? "theme-dark" : "theme-light")">
@@ -265,6 +268,7 @@ else if (_error is not null)
     private string? _error;
     private bool _isAdmin;
     private bool _isDarkMode;
+    private HashSet<string> _allowedZones = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly HashSet<string> _expandedZones = new();
     private readonly HashSet<string> _expandedHosts = new();
@@ -297,6 +301,10 @@ else if (_error is not null)
 
     protected override async Task OnInitializedAsync()
     {
+        _allowedZones = DnsOptionsAccessor.Value.AllowedZones.Length == 0
+            ? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            : new HashSet<string>(DnsOptionsAccessor.Value.AllowedZones, StringComparer.OrdinalIgnoreCase);
+
         if (AuthState is not null)
         {
             var auth = await AuthState;
@@ -306,6 +314,13 @@ else if (_error is not null)
         try
         {
             _zones = await DnsService.ListZonesAsync();
+
+            if (_allowedZones.Count > 0)
+            {
+                _zones = _zones
+                    .Where(zone => _allowedZones.Contains(zone.Name))
+                    .ToArray();
+            }
         }
         catch (Exception ex)
         {
