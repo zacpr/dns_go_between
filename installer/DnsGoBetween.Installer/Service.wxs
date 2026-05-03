@@ -56,7 +56,7 @@
         <RemoveFolder Id="RemoveApplicationProgramsFolder" On="uninstall" />
 
         <RegistryValue
-          Root="HKLM"
+          Root="HKCU"
           Key="Software\DNS Go-Between"
           Name="StartMenuShortcut"
           Type="integer"
