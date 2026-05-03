@@ -263,6 +263,8 @@ else if (_error is not null)
 </div>
 
 @code {
+    private static readonly string[] FallbackAllowedZones = ["ashurtech.net"];
+
     private IReadOnlyList<DnsZone> _zones = [];
     private bool _loading = true;
     private string? _error;
@@ -302,7 +304,7 @@ else if (_error is not null)
     protected override async Task OnInitializedAsync()
     {
         _allowedZones = DnsOptionsAccessor.Value.AllowedZones.Length == 0
-            ? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            ? new HashSet<string>(FallbackAllowedZones, StringComparer.OrdinalIgnoreCase)
             : new HashSet<string>(DnsOptionsAccessor.Value.AllowedZones, StringComparer.OrdinalIgnoreCase);
 
         if (AuthState is not null)
@@ -529,6 +531,29 @@ else if (_error is not null)
     private void ToggleTheme()
     {
         _isDarkMode = !_isDarkMode;
+        _ = ApplyThemeToDocumentAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await ApplyThemeToDocumentAsync();
+    }
+
+    private async Task ApplyThemeToDocumentAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("dnsTheme.setDarkMode", _isDarkMode);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogDebug(ex, "Unable to update document theme class");
+        }
     }
 
     private bool IsValidHostname(string hostname)

@@ -11,6 +11,13 @@
 </head>
 <body>
     <Routes @rendermode="InteractiveServer" />
+    <script>
+        window.dnsTheme = {
+            setDarkMode: function (isDark) {
+                document.body.classList.toggle('dns-dark-mode', !!isDark);
+            }
+        };
+    </script>
     <script src="_framework/blazor.web.js"></script>
 </body>
 </html>
