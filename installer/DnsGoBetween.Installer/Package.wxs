@@ -36,14 +36,22 @@
     <!-- Configuration Properties -->
     <Property Id="ALLOWEDZONES" Value="example.com" />
 
-    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER">
-      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Order="2" />
-      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2" />
-      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="ConfigDlg" Order="3" />
-      <Publish Dialog="ConfigDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg" Order="1" />
-      <Publish Dialog="ConfigDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="1" />
-      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="ConfigDlg" Order="2" />
-    </ui:WixUI>
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
+    <!--
+      Dialog-flow overrides: insert the custom ConfigDlg between
+      InstallDirDlg and VerifyReadyDlg.  Kept here rather than inside
+      <ui:WixUI> to avoid a WiX 4.0.5 bug (WIX0200) where Publish
+      children of a ui: element are rejected due to a namespace mismatch.
+    -->
+    <UI>
+      <Publish Dialog="WelcomeDlg"     Control="Next" Event="NewDialog" Value="InstallDirDlg"  Order="2" />
+      <Publish Dialog="InstallDirDlg"  Control="Back" Event="NewDialog" Value="WelcomeDlg"     Order="2" />
+      <Publish Dialog="InstallDirDlg"  Control="Next" Event="NewDialog" Value="ConfigDlg"      Order="3" />
+      <Publish Dialog="ConfigDlg"      Control="Back" Event="NewDialog" Value="InstallDirDlg"  Order="1" />
+      <Publish Dialog="ConfigDlg"      Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="1" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="ConfigDlg"      Order="2" />
+    </UI>
     <!--<WixVariable Id="WixUILicenseRtf" Value="License.rtf" />-->
 
     <Feature Id="Main" Title="DNS Go-Between" Level="1">
