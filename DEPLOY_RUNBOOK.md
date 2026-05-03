@@ -32,6 +32,19 @@ Invoke-WebRequest "http://localhost:6790/health/live"
 Invoke-WebRequest "http://vdc01.ashurtech.net:6790/health/live"
 ```
 
+Optional: install with explicit service identity (new MSI properties):
+
+```powershell
+# Built-in LocalService (no password)
+msiexec /i "$msi" /qb SERVICE_ACCOUNT="NT AUTHORITY\LocalService" /l*vx "$log"
+
+# Domain user account
+msiexec /i "$msi" /qb SERVICE_ACCOUNT="ASHURTECH\svc-dns-gobetween" SERVICE_PASSWORD="<secret>" /l*vx "$log"
+
+# gMSA (password omitted; include trailing $)
+msiexec /i "$msi" /qb SERVICE_ACCOUNT="ASHURTECH\svc-dns-gobetween$" /l*vx "$log"
+```
+
 Notes:
 
 - Non-admin installs may fail with MSI error 1625 due to local policy.

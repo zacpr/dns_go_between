@@ -40,8 +40,14 @@ try {
 
     $json = Get-Content $configPath -Raw | ConvertFrom-Json
 
-    # Split the comma/semicolon-separated string into an array
-    $zonesArray = $AllowedZonesString.Split(",;", [System.StringSplitOptions]::RemoveEmptyEntries).Trim()
+    # Split comma/semicolon lists safely and trim each entry.
+    $zonesArray = @()
+    if (-not [string]::IsNullOrWhiteSpace($AllowedZonesString)) {
+        $zonesArray = $AllowedZonesString -split '[,;]'
+        $zonesArray = $zonesArray |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    }
 
     if ($null -eq $json.Dns) {
         Write-Log "Initializing Dns section in config"
@@ -57,7 +63,7 @@ try {
     if ($null -eq $json.Tls.EnableHttp) { $json.Tls.EnableHttp = $false }
     if ($null -eq $json.Tls.HttpPort) { $json.Tls.HttpPort = 0 }
 
-    $json | ConvertTo-Json -Depth 20 | Set-Content $configPath -Encoding UTF8
+    $json | ConvertTo-Json -Depth 20 | Set-Content $configPath -Encoding UTF8 -Force
     Write-Log "Successfully updated appsettings.json"
 }
 catch {
