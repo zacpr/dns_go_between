@@ -34,12 +34,16 @@ builder.Services.Configure<TlsOptions>(
 var authOptions = builder.Configuration.GetSection(AuthOptions.SectionName).Get<AuthOptions>() ?? new AuthOptions();
 var tlsOptions = builder.Configuration.GetSection(TlsOptions.SectionName).Get<TlsOptions>() ?? new TlsOptions();
 var certificate = ResolveServerCertificate(tlsOptions);
+var primaryUsesHttps = certificate is not null;
+var secondaryHttpEnabled = tlsOptions.EnableHttp &&
+                           tlsOptions.HttpPort > 0 &&
+                           tlsOptions.HttpPort != tlsOptions.HttpsPort;
 
 builder.WebHost.ConfigureKestrel(kestrel =>
 {
     kestrel.ListenAnyIP(tlsOptions.HttpsPort, listen =>
     {
-        if (certificate is null)
+        if (!primaryUsesHttps)
         {
             // If no certificate is available, keep the service reachable on HTTP.
             // This avoids protocol mismatch errors on hosts without TLS material.
@@ -47,11 +51,11 @@ builder.WebHost.ConfigureKestrel(kestrel =>
         }
         else
         {
-            listen.UseHttps(certificate);
+            listen.UseHttps(certificate!);
         }
     });
 
-    if (tlsOptions.EnableHttp && tlsOptions.HttpPort > 0 && tlsOptions.HttpPort != tlsOptions.HttpsPort)
+    if (secondaryHttpEnabled)
     {
         kestrel.ListenAnyIP(tlsOptions.HttpPort);
     }
@@ -123,6 +127,18 @@ builder.Services.AddHealthChecks()
     .AddCheck<DnsCommandHealthCheck>("dns-cmdlet-readiness", tags: ["ready"]);
 
 var app = builder.Build();
+
+app.Logger.LogInformation(
+    "Startup listeners: PrimaryPort={PrimaryPort} PrimaryProtocol={PrimaryProtocol} SecondaryHttpEnabled={SecondaryHttpEnabled} SecondaryHttpPort={SecondaryHttpPort} RedirectHttpToHttps={RedirectHttpToHttps} CertificateSource={CertificateSource}",
+    tlsOptions.HttpsPort,
+    primaryUsesHttps ? "HTTPS" : "HTTP",
+    secondaryHttpEnabled,
+    secondaryHttpEnabled ? tlsOptions.HttpPort : null,
+    tlsOptions.RedirectHttpToHttps,
+    DescribeCertificateSource(tlsOptions, certificate));
+
+app.Logger.LogInformation(
+    "Health endpoint access: /health/* restricted to loopback callers.");
 
 if (app.Environment.IsDevelopment())
 {
@@ -340,6 +356,27 @@ static bool HasServerAuthenticationEku(X509Certificate2 cert)
     }
 
     return true;
+}
+
+static string DescribeCertificateSource(TlsOptions tlsOptions, X509Certificate2? certificate)
+{
+    if (certificate is null)
+    {
+        return "None";
+    }
+
+    if (!string.IsNullOrWhiteSpace(tlsOptions.Certificate.PfxPath))
+    {
+        return "PfxPath";
+    }
+
+    if (!string.IsNullOrWhiteSpace(tlsOptions.Certificate.Thumbprint) ||
+        !string.IsNullOrWhiteSpace(tlsOptions.Certificate.Subject))
+    {
+        return "ConfiguredStoreLookup";
+    }
+
+    return "MachineStoreAuto";
 }
 
 static IEnumerable<string> GetCandidateHostNames()
