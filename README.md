@@ -12,6 +12,16 @@ It runs on the DNS server, uses local PowerShell DNS cmdlets, and is packaged as
 - Exposes API endpoints for automation/scripts
 - Enforces authz, zone/type controls, and optional IP access controls
 
+## Resource requirements
+
+Typical footprint on a small-to-medium DNS server:
+
+- Memory (working set): ~150 MB to 350 MB under normal usage
+- Recommended RAM budget: 512 MB reserved for the service
+- High activity bursts (large record queries/multiple users): up to ~500 MB
+
+These are practical estimates, not hard limits, and will vary with zone size, query volume, and concurrent UI/API usage.
+
 ## Security defaults
 
 DNS Go-Between is HTTPS-first by default.
