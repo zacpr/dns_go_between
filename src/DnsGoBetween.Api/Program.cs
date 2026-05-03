@@ -41,7 +41,9 @@ builder.WebHost.ConfigureKestrel(kestrel =>
     {
         if (certificate is null)
         {
-            listen.UseHttps();
+            // If no certificate is available, keep the service reachable on HTTP.
+            // This avoids protocol mismatch errors on hosts without TLS material.
+            return;
         }
         else
         {
