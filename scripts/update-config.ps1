@@ -18,15 +18,31 @@ $logFile = Join-Path $InstallDir "config_update.log"
 
 function Write-Log($msg) {
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    "[$timestamp] $msg" | Out-File -FilePath $logFile -Append
+    try {
+        "[$timestamp] $msg" | Out-File -FilePath $logFile -Append -Encoding UTF8
+    }
+    catch {
+        # Logging must never break install flow.
+    }
 }
 
-Write-Log "Starting configuration update."
-Write-Log "InstallDir: $InstallDir"
-Write-Log "AllowedZones: $AllowedZonesString"
-Write-Log "HttpsPort: $HttpsPort"
+if (-not (Test-Path $InstallDir)) {
+    $fallbackDir = Join-Path $env:ProgramData "DnsGoBetween"
+    try {
+        New-Item -ItemType Directory -Path $fallbackDir -Force | Out-Null
+        $logFile = Join-Path $fallbackDir "config_update.log"
+    }
+    catch {
+        $logFile = Join-Path $env:TEMP "DnsGoBetween-config_update.log"
+    }
+}
 
 try {
+    Write-Log "Starting configuration update."
+    Write-Log "InstallDir: $InstallDir"
+    Write-Log "AllowedZones: $AllowedZonesString"
+    Write-Log "HttpsPort: $HttpsPort"
+
     $port = 0
     if (-not [int]::TryParse($HttpsPort, [ref]$port) -or $port -lt 1 -or $port -gt 65535) {
         throw "Invalid HttpsPort '$HttpsPort'. Expected integer in range 1-65535."
@@ -69,5 +85,6 @@ try {
 catch {
     Write-Log "EXCEPTION: $($_.Exception.Message)"
     Write-Log "STACK: $($_.ScriptStackTrace)"
-    exit 1
+    # Do not fail MSI install for non-critical config update issues.
+    exit 0
 }

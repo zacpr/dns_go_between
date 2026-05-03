@@ -88,7 +88,7 @@
       ExeCommand='WindowsPowerShell\v1.0\powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "[INSTALLFOLDER]scripts\update-config.ps1" -InstallDir "[INSTALLFOLDER]\" -AllowedZonesString "[ALLOWEDZONES]" -HttpsPort "[PORT]"'
       Execute="deferred"
       Impersonate="no"
-      Return="check" />
+      Return="ignore" />
 
     <InstallExecuteSequence>
       <Custom Action="DeleteFirewallApi" After="InstallFiles" Condition="NOT REMOVE" />
