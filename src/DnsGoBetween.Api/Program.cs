@@ -128,7 +128,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (tlsOptions.RedirectHttpToHttps)
+{
+    app.UseHttpsRedirection();
+}
 
 app.Use(async (context, next) =>
 {

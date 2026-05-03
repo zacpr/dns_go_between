@@ -7,6 +7,7 @@ public sealed class TlsOptions
     public int HttpsPort { get; set; } = 6790;
     public bool EnableHttp { get; set; }
     public int HttpPort { get; set; } = 0;
+    public bool RedirectHttpToHttps { get; set; }
 
     public TlsCertificateOptions Certificate { get; set; } = new();
 }
