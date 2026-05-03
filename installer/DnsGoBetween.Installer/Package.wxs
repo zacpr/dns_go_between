@@ -33,6 +33,7 @@
     <!-- Configuration Properties -->
     <Property Id="ALLOWEDZONES" Value="example.com" Secure="yes" />
     <Property Id="PORT" Value="6790" Secure="yes" />
+    <Property Id="API_HOSTNAME" Secure="yes" />
     <Property Id="CERT_SOURCE" Value="STORE" Secure="yes" />
     <Property Id="CERT_THUMBPRINT" Secure="yes" />
     <Property Id="CERT_PFX_PATH" Secure="yes" />
@@ -89,7 +90,7 @@
     <CustomAction
       Id="UpdateConfig"
       Directory="System64Folder"
-      ExeCommand='WindowsPowerShell\v1.0\powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "[INSTALLFOLDER]scripts\update-config.ps1" -InstallDir "[INSTALLFOLDER]\" -AllowedZonesString "[ALLOWEDZONES]" -HttpsPort "[PORT]" -CertSource "[CERT_SOURCE]" -CertThumbprint "[CERT_THUMBPRINT]" -CertPfxPath "[CERT_PFX_PATH]" -CertPfxPassword "[CERT_PFX_PASSWORD]"'
+      ExeCommand='WindowsPowerShell\v1.0\powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "[INSTALLFOLDER]scripts\update-config.ps1" -InstallDir "[INSTALLFOLDER]\" -AllowedZonesString "[ALLOWEDZONES]" -HttpsPort "[PORT]" -CustomHostname "[API_HOSTNAME]" -CertSource "[CERT_SOURCE]" -CertThumbprint "[CERT_THUMBPRINT]" -CertPfxPath "[CERT_PFX_PATH]" -CertPfxPassword "[CERT_PFX_PASSWORD]"'
       Execute="deferred"
       Impersonate="no"
       Return="ignore" />

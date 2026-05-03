@@ -8,6 +8,7 @@ public sealed class TlsOptions
     public bool EnableHttp { get; set; }
     public int HttpPort { get; set; } = 0;
     public bool RedirectHttpToHttps { get; set; }
+    public bool AutoSelectMachineCertificate { get; set; } = true;
 
     public TlsCertificateOptions Certificate { get; set; } = new();
 }

@@ -13,6 +13,9 @@ param(
     [string]$HttpsPort,
 
     [Parameter(Mandatory=$false)]
+    [string]$CustomHostname = "",
+
+    [Parameter(Mandatory=$false)]
     [string]$CertSource = "STORE",
 
     [Parameter(Mandatory=$false)]
@@ -100,6 +103,7 @@ try {
     Write-Log "InstallDir: $InstallDir"
     Write-Log "AllowedZones: $AllowedZonesString"
     Write-Log "HttpsPort: $HttpsPort"
+    Write-Log "CustomHostname: $CustomHostname"
     Write-Log "CertSource: $CertSource"
     Write-Log "CertThumbprintProvided: $([string]::IsNullOrWhiteSpace($CertThumbprint) -eq $false)"
     Write-Log "CertPfxPathProvided: $([string]::IsNullOrWhiteSpace($CertPfxPath) -eq $false)"
@@ -144,6 +148,14 @@ try {
     if ($null -eq $json.Tls.Certificate.StoreName) { $json.Tls.Certificate.StoreName = "My" }
     if ($null -eq $json.Tls.Certificate.StoreLocation) { $json.Tls.Certificate.StoreLocation = "LocalMachine" }
     if ($null -eq $json.Tls.Certificate.Subject) { $json.Tls.Certificate.Subject = "" }
+    if ($json.Tls.PSObject.Properties.Name -contains "AutoSelectMachineCertificate") {
+        if ($null -eq $json.Tls.AutoSelectMachineCertificate) {
+            $json.Tls.AutoSelectMachineCertificate = $true
+        }
+    }
+    else {
+        $json.Tls | Add-Member -MemberType NoteProperty -Name "AutoSelectMachineCertificate" -Value $true
+    }
 
     $json.Tls.HttpsPort = $port
     if ($null -eq $json.Tls.EnableHttp) { $json.Tls.EnableHttp = $false }
@@ -157,6 +169,23 @@ try {
         $CertSource.Trim().ToUpperInvariant()
     }
 
+    $normalizedCustomHostname = if ([string]::IsNullOrWhiteSpace($CustomHostname)) {
+        ""
+    }
+    else {
+        $CustomHostname.Trim().ToLowerInvariant()
+    }
+    $hasCustomHostname = -not [string]::IsNullOrWhiteSpace($normalizedCustomHostname)
+
+    if ($hasCustomHostname) {
+        $json.Tls.Certificate.Subject = $normalizedCustomHostname
+        $json.Tls.AutoSelectMachineCertificate = $false
+        Write-Log "Custom hostname configured. Machine certificate auto-selection disabled."
+    }
+    else {
+        $json.Tls.AutoSelectMachineCertificate = $true
+    }
+
     switch ($certSourceNormalized) {
         "PFX" {
             $trimmedPfxPath = $CertPfxPath.Trim()
@@ -167,28 +196,40 @@ try {
                 Write-Log "Configured TLS certificate source: PFX"
             }
             else {
-                Write-Log "PFX mode selected but file path is missing or not found. Falling back to store lookup."
-                $fallbackThumbprint = Get-BestStoreCertificateThumbprint
+                Write-Log "PFX mode selected but file path is missing or not found."
                 $json.Tls.Certificate.PfxPath = ""
                 $json.Tls.Certificate.PfxPassword = ""
-                $json.Tls.Certificate.Thumbprint = if ($fallbackThumbprint) { $fallbackThumbprint } else { "" }
-                if ($fallbackThumbprint) {
-                    Write-Log "Fallback store certificate selected by thumbprint."
+                if ($hasCustomHostname) {
+                    $json.Tls.Certificate.Thumbprint = ""
+                    Write-Log "Custom hostname is set, so no fallback auto certificate selection was performed."
                 }
                 else {
-                    Write-Log "No fallback store certificate found. Service will run HTTP on primary port."
+                    Write-Log "Falling back to store lookup."
+                    $fallbackThumbprint = Get-BestStoreCertificateThumbprint
+                    $json.Tls.Certificate.Thumbprint = if ($fallbackThumbprint) { $fallbackThumbprint } else { "" }
+                    if ($fallbackThumbprint) {
+                        Write-Log "Fallback store certificate selected by thumbprint."
+                    }
+                    else {
+                        Write-Log "No fallback store certificate found. Service will run HTTP on primary port."
+                    }
                 }
             }
         }
         default {
             $thumbprint = $CertThumbprint.Replace(" ", "")
             if ([string]::IsNullOrWhiteSpace($thumbprint)) {
-                $thumbprint = Get-BestStoreCertificateThumbprint
-                if ($thumbprint) {
-                    Write-Log "Auto-selected LocalMachine\\My certificate by thumbprint for STORE mode."
+                if ($hasCustomHostname) {
+                    Write-Log "Custom hostname is set, so STORE mode requires explicit thumbprint or matching certificate subject."
                 }
                 else {
-                    Write-Log "STORE mode selected with no thumbprint and no suitable auto-selected certificate."
+                    $thumbprint = Get-BestStoreCertificateThumbprint
+                    if ($thumbprint) {
+                        Write-Log "Auto-selected LocalMachine\\My certificate by thumbprint for STORE mode."
+                    }
+                    else {
+                        Write-Log "STORE mode selected with no thumbprint and no suitable auto-selected certificate."
+                    }
                 }
             }
 

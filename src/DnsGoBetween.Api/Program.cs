@@ -129,12 +129,13 @@ builder.Services.AddHealthChecks()
 var app = builder.Build();
 
 app.Logger.LogInformation(
-    "Startup listeners: PrimaryPort={PrimaryPort} PrimaryProtocol={PrimaryProtocol} SecondaryHttpEnabled={SecondaryHttpEnabled} SecondaryHttpPort={SecondaryHttpPort} RedirectHttpToHttps={RedirectHttpToHttps} CertificateSource={CertificateSource}",
+    "Startup listeners: PrimaryPort={PrimaryPort} PrimaryProtocol={PrimaryProtocol} SecondaryHttpEnabled={SecondaryHttpEnabled} SecondaryHttpPort={SecondaryHttpPort} RedirectHttpToHttps={RedirectHttpToHttps} AutoSelectMachineCertificate={AutoSelectMachineCertificate} CertificateSource={CertificateSource}",
     tlsOptions.HttpsPort,
     primaryUsesHttps ? "HTTPS" : "HTTP",
     secondaryHttpEnabled,
     secondaryHttpEnabled ? tlsOptions.HttpPort : null,
     tlsOptions.RedirectHttpToHttps,
+    tlsOptions.AutoSelectMachineCertificate,
     DescribeCertificateSource(tlsOptions, certificate));
 
 app.Logger.LogInformation(
@@ -223,6 +224,11 @@ static X509Certificate2? ResolveServerCertificate(TlsOptions tls)
     if (TryResolveFromStore(tls.Certificate, out var configuredCert))
     {
         return configuredCert;
+    }
+
+    if (!tls.AutoSelectMachineCertificate)
+    {
+        return null;
     }
 
     if (TryResolveMachineCertificate(out var machineCert))
