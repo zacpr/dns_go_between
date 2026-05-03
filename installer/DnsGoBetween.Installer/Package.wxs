@@ -33,7 +33,6 @@
     <!-- Configuration Properties -->
     <Property Id="ALLOWEDZONES" Value="example.com" Secure="yes" />
     <Property Id="PORT" Value="6790" Secure="yes" />
-    <Property Id="SecureCustomProperties" Value="ALLOWEDZONES;PORT" />
 
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
 
