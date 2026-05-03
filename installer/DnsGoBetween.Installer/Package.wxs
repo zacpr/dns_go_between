@@ -34,8 +34,7 @@
     <Property Id="ALLOWEDZONES" Value="example.com" Secure="yes" />
     <Property Id="PORT" Value="6790" Secure="yes" />
     <Property Id="SERVICE_ACCOUNT" Value="LocalSystem" Secure="yes" />
-    <Property Id="SERVICE_PASSWORD" Value="" Hidden="yes" Secure="yes" />
-    <Property Id="MsiHiddenProperties" Value="SERVICE_PASSWORD" />
+    <Property Id="SERVICE_PASSWORD" Hidden="yes" Secure="yes" />
 
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
 
