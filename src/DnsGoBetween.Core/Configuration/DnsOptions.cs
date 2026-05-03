@@ -8,7 +8,7 @@ public class DnsOptions
     public string[] AllowedZones { get; set; } = [];
 
     /// <summary>Record types permitted for write operations.</summary>
-    public string[] AllowedRecordTypes { get; set; } = ["A", "AAAA", "CNAME", "PTR"];
+    public string[] AllowedRecordTypes { get; set; } = ["A", "AAAA", "CNAME", "PTR", "TXT"];
 
     /// <summary>Seconds before a PowerShell cmdlet call is cancelled.</summary>
     public int CommandTimeoutSeconds { get; set; } = 30;

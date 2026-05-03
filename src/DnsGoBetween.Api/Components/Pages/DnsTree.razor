@@ -168,6 +168,7 @@ else if (_error is not null)
                     <option>AAAA</option>
                     <option>CNAME</option>
                     <option>PTR</option>
+                    <option>TXT</option>
                 </select>
             </label>
             <label>Data
@@ -367,7 +368,7 @@ else if (_error is not null)
         {
             _addFormErrors["HostName"] = "Host name is required.";
         }
-        else if (!IsValidHostname(_addForm.HostName))
+        else if (!IsValidHostname(_addForm.HostName, allowUnderscore: _addForm.RecordTypeStr == "TXT"))
         {
             _addFormErrors["HostName"] = "Invalid hostname. Use alphanumeric, hyphens, or @ for apex.";
         }
@@ -512,6 +513,7 @@ else if (_error is not null)
             DnsRecordType.AAAA => "badge-type-aaaa",
             DnsRecordType.CNAME => "badge-type-cname",
             DnsRecordType.PTR => "badge-type-ptr",
+            DnsRecordType.TXT => "badge-type-txt",
             _ => "badge-type-a"
         };
     }
@@ -524,6 +526,7 @@ else if (_error is not null)
             DnsRecordType.AAAA => "A6",
             DnsRecordType.CNAME => "CN",
             DnsRecordType.PTR => "PT",
+            DnsRecordType.TXT => "TX",
             _ => "--"
         };
     }
@@ -556,13 +559,14 @@ else if (_error is not null)
         }
     }
 
-    private bool IsValidHostname(string hostname)
+    private bool IsValidHostname(string hostname, bool allowUnderscore = false)
     {
         // Allow "@" for apex, alphanumeric with hyphens and dots
         if (hostname == "@") return true;
         if (string.IsNullOrWhiteSpace(hostname)) return false;
 
-        var pattern = @"^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*@?[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$";
+        var labelChars = allowUnderscore ? "a-zA-Z0-9_" : "a-zA-Z0-9";
+        var pattern = $@"^([{labelChars}]([{labelChars}-]{{0,61}}[{labelChars}])?\.)*@?[{labelChars}]([{labelChars}-]{{0,61}}[{labelChars}])?$";
         return System.Text.RegularExpressions.Regex.IsMatch(hostname, pattern);
     }
 
@@ -576,6 +580,7 @@ else if (_error is not null)
             "AAAA" => ValidateIPv6(data) ? null : "Invalid IPv6 address.",
             "CNAME" => IsValidHostname(data) ? null : "Invalid hostname for CNAME.",
             "PTR" => IsValidHostname(data) ? null : "Invalid hostname for PTR.",
+            "TXT" => string.IsNullOrWhiteSpace(data) ? "TXT value is required." : null,
             _ => null
         };
     }

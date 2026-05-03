@@ -19,7 +19,7 @@ public class DnsRecordValidationTests
         var opts = Options.Create(new DnsOptions
         {
             AllowedZones = allowedZones ?? [],
-            AllowedRecordTypes = allowedTypes ?? ["A", "AAAA", "CNAME", "PTR"]
+            AllowedRecordTypes = allowedTypes ?? ["A", "AAAA", "CNAME", "PTR", "TXT"]
         });
         return new DnsRecordService(executor, opts, NullLogger<DnsRecordService>.Instance);
     }
@@ -213,6 +213,43 @@ public class DnsRecordValidationTests
                 RecordType = DnsRecordType.CNAME,
                 Data = ""
             }));
+    }
+
+    [Fact]
+    public async Task AddRecord_TxtEmptyData_ThrowsArgumentException()
+    {
+        var executor = new Mock<IPowerShellDnsExecutor>();
+        var svc = CreateService(executor.Object);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            svc.AddRecordAsync(new AddRecordRequest
+            {
+                ZoneName = "example.local",
+                HostName = "_acme-challenge",
+                RecordType = DnsRecordType.TXT,
+                Data = ""
+            }));
+    }
+
+    [Fact]
+    public async Task AddRecord_TxtValidData_DoesNotThrow()
+    {
+        var executor = new Mock<IPowerShellDnsExecutor>();
+        executor
+            .Setup(e => e.AddResourceRecordAsync(It.IsAny<AddRecordRequest>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var svc = CreateService(executor.Object);
+        var ex = await Record.ExceptionAsync(() =>
+            svc.AddRecordAsync(new AddRecordRequest
+            {
+                ZoneName = "example.local",
+                HostName = "_acme-challenge",
+                RecordType = DnsRecordType.TXT,
+                Data = "challenge-token-value"
+            }));
+
+        Assert.Null(ex);
     }
 
     // ── Delete zone check ─────────────────────────────────────────────────────

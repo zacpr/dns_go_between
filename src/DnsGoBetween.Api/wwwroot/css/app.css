@@ -444,6 +444,7 @@ h1 { font-size: 1.4em; margin-bottom: 20px; color: #0078d4; }
 .badge-type-aaaa    { background: #7c3aed; color: white; }
 .badge-type-cname   { background: #059669; color: white; }
 .badge-type-ptr     { background: #d97706; color: white; }
+.badge-type-txt     { background: #0891b2; color: white; }
 
 /* ─── Animations ───────────────────────────────────────────────────────────── */
 @keyframes fadeIn {

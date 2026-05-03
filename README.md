@@ -7,7 +7,7 @@ It runs on the DNS server, uses local PowerShell DNS cmdlets, and is packaged as
 ## What it does
 
 - Lists zones and records from Windows DNS
-- Adds and deletes supported records (`A`, `AAAA`, `CNAME`, `PTR`)
+- Adds and deletes supported records (`A`, `AAAA`, `CNAME`, `PTR`, `TXT`)
 - Provides a browser UI for operators
 - Exposes API endpoints for automation/scripts
 - Enforces authz, zone/type controls, and optional IP access controls
@@ -140,7 +140,7 @@ Core DNS settings:
 ```json
 "Dns": {
   "AllowedZones": [],
-  "AllowedRecordTypes": ["A", "AAAA", "CNAME", "PTR"],
+  "AllowedRecordTypes": ["A", "AAAA", "CNAME", "PTR", "TXT"],
   "CommandTimeoutSeconds": 30
 }
 ```

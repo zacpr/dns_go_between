@@ -47,7 +47,10 @@ public sealed class DnsRecordService : IDnsRecordService
     {
         ValidateZone(request.ZoneName);
         ValidateRecordType(request.RecordType);
-        ValidateHostName(request.HostName, allowWildcard: request.RecordType == DnsRecordType.A);
+        ValidateHostName(
+            request.HostName,
+            allowWildcard: request.RecordType == DnsRecordType.A,
+            allowUnderscore: request.RecordType == DnsRecordType.TXT);
         ValidateRecordData(request.RecordType, request.Data);
         return _executor.AddResourceRecordAsync(request, ct);
     }
@@ -56,7 +59,10 @@ public sealed class DnsRecordService : IDnsRecordService
     {
         ValidateZone(request.ZoneName);
         ValidateRecordType(request.RecordType);
-        ValidateHostName(request.HostName, allowWildcard: request.RecordType == DnsRecordType.A);
+        ValidateHostName(
+            request.HostName,
+            allowWildcard: request.RecordType == DnsRecordType.A,
+            allowUnderscore: request.RecordType == DnsRecordType.TXT);
         return _executor.RemoveResourceRecordAsync(request, ct);
     }
 
@@ -78,7 +84,10 @@ public sealed class DnsRecordService : IDnsRecordService
             throw new NotSupportedException($"Record type '{typeName}' is not allowed.");
     }
 
-    private static void ValidateHostName(string hostName, bool allowWildcard = false)
+    private static void ValidateHostName(
+        string hostName,
+        bool allowWildcard = false,
+        bool allowUnderscore = false)
     {
         if (string.IsNullOrWhiteSpace(hostName))
             throw new ArgumentException("Host name must not be empty.", nameof(hostName));
@@ -90,7 +99,7 @@ public sealed class DnsRecordService : IDnsRecordService
         {
             if (label.Length == 0)
                 throw new ArgumentException($"Invalid hostname: '{hostName}'.");
-            if (!label.All(c => char.IsLetterOrDigit(c) || c == '-'))
+            if (!label.All(c => char.IsLetterOrDigit(c) || c == '-' || (allowUnderscore && c == '_')))
                 throw new ArgumentException(
                     $"Invalid character in hostname label '{label}' in '{hostName}'.");
             if (label.StartsWith('-') || label.EndsWith('-'))
@@ -117,6 +126,7 @@ public sealed class DnsRecordService : IDnsRecordService
 
             case DnsRecordType.CNAME:
             case DnsRecordType.PTR:
+            case DnsRecordType.TXT:
                 if (string.IsNullOrWhiteSpace(data))
                     throw new ArgumentException(
                         $"Record data cannot be empty for {type} records.");

@@ -110,6 +110,16 @@ Get-DnsServerResourceRecord -ZoneName {QuotePs(zone)}{nodeFilter} |
                 Timestamp = $_.Timestamp
             }}
         }}
+        elseif ($recordType -eq 'TXT' -and $null -ne $_.RecordData -and $null -ne $_.RecordData.DescriptiveText) {{
+            [pscustomobject]@{{
+                HostName = $_.HostName
+                ZoneName = {QuotePs(zone)}
+                RecordType = $recordType
+                Data = (@($_.RecordData.DescriptiveText) -join '')
+                TimeToLive = [int]$_.TimeToLive.TotalSeconds
+                Timestamp = $_.Timestamp
+            }}
+        }}
     }} |
     ConvertTo-Json -Compress
 ";
@@ -164,6 +174,12 @@ $ProgressPreference = 'SilentlyContinue'
 Import-Module DnsServer -ErrorAction Stop
 Add-DnsServerResourceRecordPtr -ZoneName {QuotePs(request.ZoneName)} -Name {QuotePs(request.HostName)} -PtrDomainName {QuotePs(request.Data)} -TimeToLive ([TimeSpan]{ttlPs})
 ",
+            DnsRecordType.TXT => $@"
+$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
+Import-Module DnsServer -ErrorAction Stop
+Add-DnsServerResourceRecord -ZoneName {QuotePs(request.ZoneName)} -Name {QuotePs(request.HostName)} -Txt -DescriptiveText {QuotePs(request.Data)} -TimeToLive ([TimeSpan]{ttlPs})
+",
             _ => throw new NotSupportedException($"Record type {request.RecordType} is not supported in v1.")
         };
 
@@ -212,6 +228,7 @@ $target = Get-DnsServerResourceRecord -ZoneName {QuotePs(request.ZoneName)} -Nam
             'AAAA' {{ if ($null -ne $_.RecordData.IPv6Address) {{ $_.RecordData.IPv6Address.ToString() }} else {{ $null }} }}
             'CNAME' {{ if ($null -ne $_.RecordData.HostNameAlias) {{ $_.RecordData.HostNameAlias.ToString() }} else {{ $null }} }}
             'PTR' {{ if ($null -ne $_.RecordData.PtrDomainName) {{ $_.RecordData.PtrDomainName.ToString() }} else {{ $null }} }}
+            'TXT' {{ if ($null -ne $_.RecordData.DescriptiveText) {{ (@($_.RecordData.DescriptiveText) -join '') }} else {{ $null }} }}
             Default {{ $null }}
         }}
 
