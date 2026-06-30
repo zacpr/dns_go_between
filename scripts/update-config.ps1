@@ -194,7 +194,19 @@ try {
             $trimmedPfxPath = $CertPfxPath.Trim()
             if (-not [string]::IsNullOrWhiteSpace($trimmedPfxPath) -and (Test-Path $trimmedPfxPath)) {
                 $json.Tls.Certificate.PfxPath = $trimmedPfxPath
-                $json.Tls.Certificate.PfxPassword = $CertPfxPassword
+                # Upgrade UX: a blank password means "keep the previously stored value"
+                # (the registry-persisted CERT_PFX_PATH pre-fills on upgrade but the
+                # password field is intentionally not persisted).
+                $existingPfxPassword = $null
+                if ($null -ne $json.Tls.Certificate -and ($json.Tls.Certificate.PSObject.Properties.Name -contains 'PfxPassword')) {
+                    $existingPfxPassword = $json.Tls.Certificate.PfxPassword
+                }
+                if ([string]::IsNullOrEmpty($CertPfxPassword) -and -not [string]::IsNullOrEmpty($existingPfxPassword)) {
+                    Write-Log "PFX password field left blank; preserving existing PfxPassword from appsettings.json (upgrade scenario)."
+                }
+                else {
+                    $json.Tls.Certificate.PfxPassword = $CertPfxPassword
+                }
                 $json.Tls.Certificate.Thumbprint = ""
                 Write-Log "Configured TLS certificate source: PFX"
             }

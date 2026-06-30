@@ -119,3 +119,39 @@ As of version 1.0.11, the project has transitioned from a proof-of-concept to a 
 - API currently enforces exact-match deletion for safety.
 - All records must belong to an explicitly allowed zone list in `appsettings.json`.
 
+## Roadmap
+
+### v1.3.9 (in flight)
+- ICE03 / ICE61 WiX warning cleanup (beta.4, done).
+- Installer upgrade UX: dialog pre-fills from previous install via persisted registry values (beta.5, done). Secrets excluded; blank PFX password = keep current.
+
+### v1.4 — Windows CA (AD CS) Certificate Enrollment *(headline feature)*
+
+Goal: let domain-joined deployments enroll their own TLS certificate from an internal Microsoft Enterprise CA instead of importing PFX / picking a pre-existing thumbprint. Runtime already speaks `STORE` source, so this is mostly installer work — ADCS is effectively "STORE that we provision ourselves."
+
+**Scope phases:**
+
+*v1.4 (target):*
+- New `CERT_SOURCE=ADCS` option in `ConfigDlg`, with fields: template name (default `WebServer`), optional CA config string `CA-HOST\CA-Name`, optional extra SANs.
+- New `scripts/enroll-cert.ps1` deferred CA: generates INF, runs `certreq -new`, `certreq -submit`, `certreq -accept`, captures resulting thumbprint, hands it to `update-config.ps1` as if user had picked `STORE` with that thumbprint.
+- Synchronous (immediate-issue templates only); on any failure → fall back to self-signed and surface a banner in the admin UI.
+- Manual **Re-enroll Now** button in the Settings page (calls the same script post-install).
+- Documentation: required template ACLs, machine account "Enroll" permission, firewall (RPC dynamic ports for cert enrollment), troubleshooting matrix.
+
+*v1.5 (deferred):*
+- Background renewal worker inside `DnsGoBetween.Api` service: daily check, re-enroll at 75% of validity.
+- Pending-approval polling (request ID persisted across service restarts).
+- Admin UI: current cert expiry, next renewal time, enrollment history, alert thresholds.
+
+*v1.6+ (deferred):*
+- Non-domain enrollment with stored credentials (DPAPI machine-scope at minimum).
+- Multiple CAs / per-zone templates.
+- ACME (Let's Encrypt) source as a third enrollment path alongside ADCS.
+
+**Open design questions:**
+- Where to store enrollment state across installs? Suggested: `HKLM\Software\DnsGoBetween\Enrollment` (template name, last issued thumbprint, last attempt timestamp, last error) — fits the registry-persist pattern introduced in v1.3.9.
+- Should `enroll-cert.ps1` be testable in CI? Likely needs an `ICertificateEnroller` C# abstraction with a fake implementation; PS script remains a thin install-time shim.
+- Failure-mode UX: should a failed enrollment block the install, or silently fall back? Recommendation: fall back (install must succeed), show the error prominently in the UI after first launch.
+
+**Effort estimate:** v1.4 happy path ~2-3 dev days. Add ~3-4 days for unit tests, docs, and the manual re-enroll UI. v1.5 renewal worker ~1 week.
+

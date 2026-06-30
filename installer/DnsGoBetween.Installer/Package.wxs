@@ -31,13 +31,37 @@
     <!-- Embed all cab files into the MSI so it ships as a single file. -->
     <MediaTemplate EmbedCab="yes" />
 
-    <!-- Configuration Properties -->
-    <Property Id="ALLOWEDZONES" Value="example.com" Secure="yes" />
-    <Property Id="PORT" Value="6790" Secure="yes" />
-    <Property Id="API_HOSTNAME" Secure="yes" />
-    <Property Id="CERT_SOURCE" Value="STORE" Secure="yes" />
-    <Property Id="CERT_THUMBPRINT" Secure="yes" />
-    <Property Id="CERT_PFX_PATH" Secure="yes" />
+    <!--
+      Configuration Properties.
+      Each non-secret dialog field has a <RegistrySearch> child so that on an
+      upgrade, the previous install's values are pre-loaded by AppSearch
+      before the ConfigDlg renders. The registry values are written by the
+      InstallerStateRegistry component (see fragment below) at the end of
+      each install. MajorUpgrade.Schedule="afterInstallInitialize" runs
+      AppSearch BEFORE the old product is removed, so the values survive
+      the upgrade swap.
+      Secrets (CERT_PFX_PASSWORD, SERVICE_PASSWORD) are intentionally NOT
+      persisted - update-config.ps1 preserves the existing appsettings.json
+      PfxPassword when the dialog field is left blank.
+    -->
+    <Property Id="ALLOWEDZONES" Value="example.com" Secure="yes">
+      <RegistrySearch Id="SearchAllowedZones"  Root="HKLM" Key="Software\DnsGoBetween\Installer" Name="AllowedZones"   Type="raw" Bitness="always64" />
+    </Property>
+    <Property Id="PORT" Value="6790" Secure="yes">
+      <RegistrySearch Id="SearchPort"          Root="HKLM" Key="Software\DnsGoBetween\Installer" Name="Port"           Type="raw" Bitness="always64" />
+    </Property>
+    <Property Id="API_HOSTNAME" Secure="yes">
+      <RegistrySearch Id="SearchApiHostname"   Root="HKLM" Key="Software\DnsGoBetween\Installer" Name="ApiHostname"    Type="raw" Bitness="always64" />
+    </Property>
+    <Property Id="CERT_SOURCE" Value="STORE" Secure="yes">
+      <RegistrySearch Id="SearchCertSource"    Root="HKLM" Key="Software\DnsGoBetween\Installer" Name="CertSource"     Type="raw" Bitness="always64" />
+    </Property>
+    <Property Id="CERT_THUMBPRINT" Secure="yes">
+      <RegistrySearch Id="SearchCertThumbprint" Root="HKLM" Key="Software\DnsGoBetween\Installer" Name="CertThumbprint" Type="raw" Bitness="always64" />
+    </Property>
+    <Property Id="CERT_PFX_PATH" Secure="yes">
+      <RegistrySearch Id="SearchCertPfxPath"   Root="HKLM" Key="Software\DnsGoBetween\Installer" Name="CertPfxPath"    Type="raw" Bitness="always64" />
+    </Property>
     <Property Id="CERT_PFX_PASSWORD" Hidden="yes" Secure="yes" />
     <Property Id="SERVICE_ACCOUNT" Value="LocalSystem" Secure="yes" />
     <Property Id="SERVICE_PASSWORD" Hidden="yes" Secure="yes" />
@@ -63,6 +87,7 @@
     <Feature Id="Main" Title="DNS Go-Between" Level="1">
       <ComponentGroupRef Id="ServiceComponent" />
       <ComponentGroupRef Id="HarvestedFiles" />
+      <ComponentGroupRef Id="InstallerStateComponents" />
     </Feature>
 
     <CustomAction
@@ -115,6 +140,27 @@
     <StandardDirectory Id="ProgramMenuFolder">
       <Directory Id="ApplicationProgramsFolder" Name="DNS Go-Between" />
     </StandardDirectory>
+  </Fragment>
+
+  <!--
+    Installer state persistence.
+    Writes the non-secret config-dialog values to HKLM so that the next
+    install (upgrade) can pre-populate the dialog via <RegistrySearch>.
+    Secrets are deliberately omitted from this registry surface.
+  -->
+  <Fragment>
+    <ComponentGroup Id="InstallerStateComponents" Directory="INSTALLFOLDER">
+      <Component Id="InstallerStateRegistry" Guid="B8F2D4E1-9C3A-4F5B-A6D7-2E8C1F3B9D4A">
+        <RegistryKey Root="HKLM" Key="Software\DnsGoBetween\Installer" ForceCreateOnInstall="yes" ForceDeleteOnUninstall="yes">
+          <RegistryValue Name="AllowedZones"    Type="string" Value="[ALLOWEDZONES]"     KeyPath="yes" />
+          <RegistryValue Name="Port"            Type="string" Value="[PORT]" />
+          <RegistryValue Name="ApiHostname"     Type="string" Value="[API_HOSTNAME]" />
+          <RegistryValue Name="CertSource"      Type="string" Value="[CERT_SOURCE]" />
+          <RegistryValue Name="CertThumbprint"  Type="string" Value="[CERT_THUMBPRINT]" />
+          <RegistryValue Name="CertPfxPath"     Type="string" Value="[CERT_PFX_PATH]" />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
   </Fragment>
 
 </Wix>

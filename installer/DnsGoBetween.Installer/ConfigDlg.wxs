@@ -42,6 +42,7 @@
 
         <Control Id="PfxPasswordLabel" Type="Text" X="20" Y="324" Width="320" Height="15" NoPrefix="yes" Text="PFX password (for PFX mode):" />
         <Control Id="PfxPasswordEdit" Type="Edit" X="20" Y="339" Width="320" Height="18" Property="CERT_PFX_PASSWORD" Password="yes" />
+        <Control Id="PfxPasswordHint" Type="Text" X="20" Y="358" Width="320" Height="12" NoPrefix="yes" Transparent="yes" Text="On upgrade, leave blank to keep the current PFX password." />
       </Dialog>
     </UI>
   </Fragment>
