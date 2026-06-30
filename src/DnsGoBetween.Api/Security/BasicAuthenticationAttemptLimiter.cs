@@ -7,6 +7,7 @@ namespace DnsGoBetween.Api.Security;
 public sealed class BasicAuthenticationAttemptLimiter
 {
     private readonly ConcurrentDictionary<string, AttemptState> _attempts = new(StringComparer.Ordinal);
+    private DateTimeOffset _lastPruneUtc = DateTimeOffset.MinValue;
     private readonly AuthOptions _options;
     private readonly TimeProvider _timeProvider;
 
@@ -63,6 +64,8 @@ public sealed class BasicAuthenticationAttemptLimiter
             key,
             _ => CreateFailureState(now),
             (_, existing) => UpdateFailureState(existing, now));
+
+        PruneStaleEntries(now);
     }
 
     public void RegisterSuccess(string key)
@@ -73,6 +76,27 @@ public sealed class BasicAuthenticationAttemptLimiter
         }
 
         _attempts.TryRemove(key, out _);
+    }
+
+    private void PruneStaleEntries(DateTimeOffset now)
+    {
+        if (now - _lastPruneUtc < TimeSpan.FromMinutes(1))
+            return;
+
+        _lastPruneUtc = now;
+        var expirationWindow = TimeSpan.FromSeconds(Math.Max(60, _options.BasicAuthenticationLockoutSeconds * 2));
+
+        foreach (var (k, state) in _attempts)
+        {
+            if (state.LockoutEndUtc is not null && state.LockoutEndUtc <= now)
+            {
+                _attempts.TryRemove(k, out _);
+            }
+            else if (state.LockoutEndUtc is null && now - state.LastAttemptUtc > expirationWindow)
+            {
+                _attempts.TryRemove(k, out _);
+            }
+        }
     }
 
     private bool IsEnabled()
@@ -87,7 +111,7 @@ public sealed class BasicAuthenticationAttemptLimiter
             lockoutEndUtc = now.AddSeconds(_options.BasicAuthenticationLockoutSeconds);
         }
 
-        return new AttemptState(failureCount, lockoutEndUtc);
+        return new AttemptState(failureCount, lockoutEndUtc, now);
     }
 
     private AttemptState UpdateFailureState(AttemptState existing, DateTimeOffset now)
@@ -107,8 +131,8 @@ public sealed class BasicAuthenticationAttemptLimiter
             lockoutEndUtc = now.AddSeconds(_options.BasicAuthenticationLockoutSeconds);
         }
 
-        return new AttemptState(failureCount, lockoutEndUtc);
+        return new AttemptState(failureCount, lockoutEndUtc, now);
     }
 
-    private sealed record AttemptState(int FailureCount, DateTimeOffset? LockoutEndUtc);
+    private sealed record AttemptState(int FailureCount, DateTimeOffset? LockoutEndUtc, DateTimeOffset LastAttemptUtc);
 }

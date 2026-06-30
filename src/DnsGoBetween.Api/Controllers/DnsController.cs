@@ -24,24 +24,34 @@ public sealed class DnsController : ControllerBase
         _logger = logger;
     }
 
+    /// <summary>Returns the list of enabled DNS providers.</summary>
+    [HttpGet("providers")]
+    [Authorize(Policy = "ReadPolicy")]
+    public IActionResult GetProviders()
+    {
+        return Ok(_dns.GetAvailableProviders());
+    }
+
     /// <summary>Returns all DNS zones (filtered to the allowlist if configured).</summary>
     [HttpGet("zones")]
+    [HttpGet("{provider}/zones")]
     [Authorize(Policy = "ReadPolicy")]
-    public async Task<IActionResult> GetZones(CancellationToken ct)
+    public async Task<IActionResult> GetZones(CancellationToken ct, string provider = "Windows")
     {
-        var zones = await _dns.ListZonesAsync(ct);
+        var zones = await _dns.ListZonesAsync(provider, ct);
         return Ok(zones);
     }
 
     /// <summary>Returns all resource records in a zone, optionally filtered to a hostname.</summary>
     [HttpGet("zones/{zone}/records")]
+    [HttpGet("{provider}/zones/{zone}/records")]
     [Authorize(Policy = "ReadPolicy")]
     public async Task<IActionResult> GetRecords(
-        string zone, [FromQuery] string? node, CancellationToken ct)
+        string zone, [FromQuery] string? node, CancellationToken ct, string provider = "Windows")
     {
         try
         {
-            var records = await _dns.ListRecordsAsync(zone, node, ct);
+            var records = await _dns.ListRecordsAsync(provider, zone, node, ct);
             return Ok(records);
         }
         catch (UnauthorizedAccessException)
@@ -56,19 +66,25 @@ public sealed class DnsController : ControllerBase
 
     /// <summary>Creates a DNS resource record.</summary>
     [HttpPost("records")]
-    [Authorize(Policy = "WritePolicy")]
+    [HttpPost("{provider}/records")]
     public async Task<IActionResult> AddRecord(
-        [FromBody] AddRecordRequest request, CancellationToken ct)
+        [FromBody] AddRecordRequest request, CancellationToken ct, string provider = "Windows")
     {
         var correlationId = HttpContext.TraceIdentifier;
         var user = User.Identity?.Name ?? "unknown";
-        var target = BuildAuditTarget(request.ZoneName, request.HostName, request.RecordType.ToString());
+        var target = BuildAuditTarget(request.ZoneName, request.HostName, request.RecordType.ToString()) + $" [{provider}]";
+
+        if (!_dns.CanWrite(User, provider))
+        {
+            _audit.LogWrite(user, "AddRecord", target, success: false, "Access Denied (Provider Roles)", correlationId);
+            return StatusCode(StatusCodes.Status403Forbidden, CreateSafeProblem(StatusCodes.Status403Forbidden, "Access denied", $"You lack permission to write to the {provider} provider."));
+        }
 
         try
         {
-            await _dns.AddRecordAsync(request, ct);
+            await _dns.AddRecordAsync(provider, request, ct);
             _audit.LogWrite(user, "AddRecord", target, success: true, correlationId: correlationId);
-            return Created($"/api/zones/{request.ZoneName}/records", null);
+            return Created($"/api/{provider}/zones/{request.ZoneName}/records", null);
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -110,17 +126,23 @@ public sealed class DnsController : ControllerBase
 
     /// <summary>Deletes a DNS resource record (exact-match required).</summary>
     [HttpDelete("records")]
-    [Authorize(Policy = "WritePolicy")]
+    [HttpDelete("{provider}/records")]
     public async Task<IActionResult> DeleteRecord(
-        [FromBody] DeleteRecordRequest request, CancellationToken ct)
+        [FromBody] DeleteRecordRequest request, CancellationToken ct, string provider = "Windows")
     {
         var correlationId = HttpContext.TraceIdentifier;
         var user = User.Identity?.Name ?? "unknown";
-        var target = BuildAuditTarget(request.ZoneName, request.HostName, request.RecordType.ToString());
+        var target = BuildAuditTarget(request.ZoneName, request.HostName, request.RecordType.ToString()) + $" [{provider}]";
+
+        if (!_dns.CanWrite(User, provider))
+        {
+            _audit.LogWrite(user, "DeleteRecord", target, success: false, "Access Denied (Provider Roles)", correlationId);
+            return StatusCode(StatusCodes.Status403Forbidden, CreateSafeProblem(StatusCodes.Status403Forbidden, "Access denied", $"You lack permission to write to the {provider} provider."));
+        }
 
         try
         {
-            await _dns.DeleteRecordAsync(request, ct);
+            await _dns.DeleteRecordAsync(provider, request, ct);
             _audit.LogWrite(user, "DeleteRecord", target, success: true, correlationId: correlationId);
             return NoContent();
         }

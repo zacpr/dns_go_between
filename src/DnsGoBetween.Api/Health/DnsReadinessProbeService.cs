@@ -50,7 +50,7 @@ public sealed class DnsReadinessProbeService : BackgroundService
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
             cts.CancelAfter(ProbeTimeout);
 
-            await dns.ListZonesAsync(cts.Token);
+            await dns.ListZonesAsync("Windows", cts.Token);
             _state.ReportSuccess(nowUtc);
         }
         catch (Exception ex) when (!stoppingToken.IsCancellationRequested)

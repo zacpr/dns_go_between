@@ -10,10 +10,12 @@ using DnsGoBetween.Core.Configuration;
 using DnsGoBetween.Core.Interfaces;
 using DnsGoBetween.Infrastructure.Audit;
 using DnsGoBetween.Infrastructure.Dns;
+using DnsGoBetween.Infrastructure.Health;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting.WindowsServices;
 
@@ -41,19 +43,19 @@ var secondaryHttpEnabled = tlsOptions.EnableHttp &&
 
 builder.WebHost.ConfigureKestrel(kestrel =>
 {
-    kestrel.ListenAnyIP(tlsOptions.HttpsPort, listen =>
+    if (primaryUsesHttps)
     {
-        if (!primaryUsesHttps)
-        {
-            // If no certificate is available, keep the service reachable on HTTP.
-            // This avoids protocol mismatch errors on hosts without TLS material.
-            return;
-        }
-        else
+        kestrel.ListenAnyIP(tlsOptions.HttpsPort, listen =>
         {
             listen.UseHttps(certificate!);
-        }
-    });
+        });
+    }
+    else
+    {
+        // If no certificate is available, keep the service reachable on HTTP but restrict to loopback.
+        // This avoids exposing cleartext credentials over the network.
+        kestrel.Listen(IPAddress.Loopback, tlsOptions.HttpsPort);
+    }
 
     if (secondaryHttpEnabled)
     {
@@ -99,12 +101,67 @@ builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = options.DefaultPolicy;
 
     options.AddPolicy("ReadPolicy", p => p.RequireAuthenticatedUser());
-    options.AddPolicy("WritePolicy", p => p.RequireRole("DnsAdmins", "Domain Admins"));
+    
+    var defaultWriteRoles = builder.Configuration.GetSection("Dns:DefaultWriteRoles").Get<string[]>() ?? ["DnsAdmins", "Domain Admins"];
+    options.AddPolicy("WritePolicy", p => p.RequireRole(defaultWriteRoles));
 });
 
 // ── Application services ──────────────────────────────────────────────────────
-builder.Services.AddScoped<IPowerShellDnsExecutor, LocalPowerShellDnsExecutor>();
+
+// Register Windows Provider
+builder.Services.AddScoped<IDnsProvider, LocalPowerShellDnsExecutor>();
+
+// Register Cloudflare Provider if token is configured
+var cfToken = builder.Configuration.GetValue<string>("Dns:CloudflareApiToken");
+var cfEmail = builder.Configuration.GetValue<string>("Dns:CloudflareEmail");
+var cfApiKey = builder.Configuration.GetValue<string>("Dns:CloudflareApiKey");
+
+if (!string.IsNullOrWhiteSpace(cfToken) || (!string.IsNullOrWhiteSpace(cfEmail) && !string.IsNullOrWhiteSpace(cfApiKey)))
+{
+    builder.Services.AddHttpClient<IDnsProvider, CloudflareDnsProvider>(client =>
+    {
+        client.BaseAddress = new Uri("https://api.cloudflare.com/client/v4/");
+        if (!string.IsNullOrWhiteSpace(cfToken))
+        {
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", cfToken);
+        }
+        else
+        {
+            client.DefaultRequestHeaders.Add("X-Auth-Email", cfEmail);
+            client.DefaultRequestHeaders.Add("X-Auth-Key", cfApiKey);
+        }
+    });
+}
+
+// Register AWS Route53 Provider if keys are configured
+var awsAccessKey = builder.Configuration.GetValue<string>("Dns:AwsAccessKey");
+var awsSecretKey = builder.Configuration.GetValue<string>("Dns:AwsSecretKey");
+if (!string.IsNullOrWhiteSpace(awsAccessKey) && !string.IsNullOrWhiteSpace(awsSecretKey))
+{
+    builder.Services.AddScoped<IDnsProvider, AwsRoute53DnsProvider>();
+}
+
+// Register Namecheap Provider if credentials are configured
+var ncApiUser = builder.Configuration.GetValue<string>("Dns:NamecheapApiUser");
+var ncApiKey = builder.Configuration.GetValue<string>("Dns:NamecheapApiKey");
+if (!string.IsNullOrWhiteSpace(ncApiUser) && !string.IsNullOrWhiteSpace(ncApiKey))
+{
+    builder.Services.AddHttpClient<IDnsProvider, NamecheapDnsProvider>(client => {
+        client.BaseAddress = new Uri("https://api.namecheap.com/xml.response");
+    });
+}
+
+// Register RemoteWindows Provider if credentials are configured
+var rwServer = builder.Configuration.GetValue<string>("Dns:RemoteWindowsServer");
+var rwUser = builder.Configuration.GetValue<string>("Dns:RemoteWindowsUser");
+var rwPassword = builder.Configuration.GetValue<string>("Dns:RemoteWindowsPassword");
+if (!string.IsNullOrWhiteSpace(rwServer) && !string.IsNullOrWhiteSpace(rwUser) && !string.IsNullOrWhiteSpace(rwPassword))
+{
+    builder.Services.AddSingleton<IDnsProvider, RemoteWindowsDnsProvider>();
+}
+
 builder.Services.AddScoped<IDnsRecordService, DnsRecordService>();
+builder.Services.AddSingleton<IAuditHistoryStore, FileAuditHistoryStore>();
 builder.Services.AddSingleton<IAuditLogger, StructuredAuditLogger>();
 builder.Services.AddSingleton<FileIpAccessPolicy>();
 builder.Services.AddSingleton<BasicAuthenticationAttemptLimiter>();
@@ -125,8 +182,24 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // ── Health checks ─────────────────────────────────────────────────────────────
-builder.Services.AddHealthChecks()
+var healthChecks = builder.Services.AddHealthChecks()
     .AddCheck<DnsCommandHealthCheck>("dns-cmdlet-readiness", tags: ["ready"]);
+
+if (!string.IsNullOrWhiteSpace(cfToken) || (!string.IsNullOrWhiteSpace(cfEmail) && !string.IsNullOrWhiteSpace(cfApiKey)))
+{
+    healthChecks.AddCheck<CloudflareHealthCheck>("cloudflare-api-readiness", tags: ["ready"]);
+}
+
+if (!string.IsNullOrWhiteSpace(ncApiUser) && !string.IsNullOrWhiteSpace(ncApiKey))
+{
+    healthChecks.AddCheck<NamecheapHealthCheck>("namecheap-api-readiness", tags: ["ready"]);
+}
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    // Trust loopback proxies by default. Ensures RemoteIpAddress reflects the real client if proxied locally.
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
 
 var app = builder.Build();
 
@@ -139,6 +212,11 @@ app.Logger.LogInformation(
     tlsOptions.RedirectHttpToHttps,
     tlsOptions.AutoSelectMachineCertificate,
     DescribeCertificateSource(tlsOptions, certificate));
+
+if (!primaryUsesHttps)
+{
+    app.Logger.LogWarning("No TLS certificate was found! The primary listener has downgraded to HTTP and is bound strictly to the loopback interface.");
+}
 
 app.Logger.LogInformation(
     "Health endpoint access: /health/* allows anonymous remote callers.");
@@ -154,8 +232,21 @@ if (tlsOptions.RedirectHttpToHttps)
     app.UseHttpsRedirection();
 }
 
+app.UseForwardedHeaders();
+
 app.Use(async (context, next) =>
 {
+    if (context.Request.Path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase))
+    {
+        var remoteIp = context.Connection.RemoteIpAddress;
+        if (remoteIp != null && !IPAddress.IsLoopback(remoteIp))
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await context.Response.WriteAsJsonAsync(new { error = "Health endpoints are loopback-only." });
+            return;
+        }
+    }
+
     var policy = context.RequestServices.GetRequiredService<FileIpAccessPolicy>();
     if (!policy.IsAllowed(context.Connection.RemoteIpAddress, out var reason))
     {

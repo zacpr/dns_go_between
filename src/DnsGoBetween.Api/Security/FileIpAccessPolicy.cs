@@ -110,7 +110,10 @@ public sealed class FileIpAccessPolicy
         }
 
         var rules = new List<IpRangeRule>();
-        var content = File.ReadAllText(path);
+
+        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var sr = new StreamReader(fs);
+        var content = sr.ReadToEnd();
 
         foreach (var rawLine in content.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
         {

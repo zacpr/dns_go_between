@@ -15,12 +15,58 @@
 @inject IOptions<DnsOptions> DnsOptionsAccessor
 
 <PageTitle>DNS Manager</PageTitle>
+<style>
+    .provider-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color, #ccc);
+        padding: 0 1rem;
+    }
+    .btn-tab {
+        background: none;
+        border: none;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 1rem;
+        color: var(--text-muted, #666);
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+    .btn-tab.active {
+        color: var(--text-color, #000);
+        border-bottom: 2px solid var(--primary-color, #007bff);
+        font-weight: bold;
+    }
+    .theme-dark .btn-tab.active {
+        color: #fff;
+    }
+    .theme-dark .btn-tab {
+        color: #aaa;
+    }
+    .theme-dark .btn-tab:hover {
+        color: #ddd;
+    }
+</style>
 <div class="dns-page @(_isDarkMode ? "theme-dark" : "theme-light")">
     <div class="page-header">
         <h1>DNS Record Manager</h1>
         <div class="status-indicator">@_zones.Count zone(s)</div>
         <button class="btn-theme-toggle" @onclick="ToggleTheme">@(_isDarkMode ? "Light" : "Dark") mode</button>
     </div>
+
+    @if (_providers.Count > 1)
+    {
+        <div class="provider-tabs">
+            @foreach (var provider in _providers)
+            {
+                <button class="btn-tab @(_selectedProvider == provider ? "active" : "")"
+                        @onclick="() => SelectProviderAsync(provider)">
+                    @provider
+                </button>
+            }
+        </div>
+    }
 
 @if (_loading)
 {
@@ -272,6 +318,9 @@ else if (_error is not null)
     private bool _isAdmin;
     private bool _isDarkMode;
     private HashSet<string> _allowedZones = new(StringComparer.OrdinalIgnoreCase);
+    
+    private List<string> _providers = [];
+    private string _selectedProvider = "Windows";
 
     private readonly HashSet<string> _expandedZones = new();
     private readonly HashSet<string> _expandedHosts = new();
@@ -311,12 +360,18 @@ else if (_error is not null)
         if (AuthState is not null)
         {
             var auth = await AuthState;
-            _isAdmin = auth.User.IsInRole("DnsAdmins") || auth.User.IsInRole("Domain Admins");
+            _isAdmin = DnsService.CanWrite(auth.User, _selectedProvider);
+        }
+        
+        _providers = DnsService.GetAvailableProviders().ToList();
+        if (_providers.Count > 0)
+        {
+            _selectedProvider = _providers[0];
         }
 
         try
         {
-            _zones = await DnsService.ListZonesAsync();
+            _zones = await DnsService.ListZonesAsync(_selectedProvider);
 
             if (_allowedZones.Count > 0)
             {
@@ -335,6 +390,46 @@ else if (_error is not null)
             _loading = false;
         
             // Restore expanded tree state from session storage
+            await RestoreTreeStateAsync();
+        }
+    }
+
+    private async Task SelectProviderAsync(string provider)
+    {
+        if (_selectedProvider == provider) return;
+        _selectedProvider = provider;
+        
+        _loading = true;
+        _error = null;
+        _zones = [];
+        _zoneRecords.Clear();
+        _expandedZones.Clear();
+        _expandedHosts.Clear();
+        _searchQuery = string.Empty;
+        _searchResults = 0;
+        
+        if (AuthState is not null)
+        {
+            var auth = await AuthState;
+            _isAdmin = DnsService.CanWrite(auth.User, _selectedProvider);
+        }
+
+        try
+        {
+            _zones = await DnsService.ListZonesAsync(_selectedProvider);
+            if (_allowedZones.Count > 0)
+            {
+                _zones = _zones.Where(zone => _allowedZones.Contains(zone.Name)).ToArray();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load DNS zones");
+            _error = $"Failed to load zones: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
             await RestoreTreeStateAsync();
         }
     }
@@ -407,7 +502,7 @@ else if (_error is not null)
 
         try
         {
-            await DnsService.AddRecordAsync(new AddRecordRequest
+            await DnsService.AddRecordAsync(_selectedProvider, new AddRecordRequest
             {
                 ZoneName = _addForm.ZoneName,
                 HostName = _addForm.HostName,
@@ -419,7 +514,7 @@ else if (_error is not null)
             // Refresh the zone record cache
             _zoneRecords.Remove(_addForm.ZoneName);
             _expandedZones.Add(_addForm.ZoneName);
-            _zoneRecords[_addForm.ZoneName] = await DnsService.ListRecordsAsync(_addForm.ZoneName);
+            _zoneRecords[_addForm.ZoneName] = await DnsService.ListRecordsAsync(_selectedProvider, _addForm.ZoneName);
             ShowSuccessToast($"Record created: {_addForm.HostName} ({_addForm.RecordTypeStr})");
 
             _showAddForm = false;
@@ -452,7 +547,7 @@ else if (_error is not null)
 
         try
         {
-            await DnsService.DeleteRecordAsync(new DeleteRecordRequest
+            await DnsService.DeleteRecordAsync(_selectedProvider, new DeleteRecordRequest
             {
                 ZoneName = _deleteTarget.ZoneName,
                 HostName = _deleteTarget.HostName,
@@ -463,7 +558,7 @@ else if (_error is not null)
             // Refresh the zone record cache
             var zone = _deleteTarget.ZoneName;
             _zoneRecords.Remove(zone);
-            _zoneRecords[zone] = await DnsService.ListRecordsAsync(zone);
+            _zoneRecords[zone] = await DnsService.ListRecordsAsync(_selectedProvider, zone);
 
             _deleteTarget = null;
             ShowSuccessToast($"Record deleted: {deletedHost} ({deletedType})");
@@ -675,7 +770,7 @@ else if (_error is not null)
                 StateHasChanged();
                 try
                 {
-                    _zoneRecords[zoneName] = await DnsService.ListRecordsAsync(zoneName);
+                    _zoneRecords[zoneName] = await DnsService.ListRecordsAsync(_selectedProvider, zoneName);
                     UpdateSearchResults();
                 }
                 catch (Exception ex)
@@ -710,7 +805,7 @@ else if (_error is not null)
 
         try
         {
-            _zoneRecords[zoneName] = await DnsService.ListRecordsAsync(zoneName);
+            _zoneRecords[zoneName] = await DnsService.ListRecordsAsync(_selectedProvider, zoneName);
             UpdateSearchResults();
         }
         catch (Exception ex)
@@ -795,7 +890,7 @@ else if (_error is not null)
         try
         {
             // Restore expanded zones from sessionStorage
-            var expandedZonesJson = await JS.InvokeAsync<string>("sessionStorage.getItem", "dns_expanded_zones");
+            var expandedZonesJson = await JS.InvokeAsync<string>("sessionStorage.getItem", $"dns_expanded_zones_{_selectedProvider}");
             if (!string.IsNullOrEmpty(expandedZonesJson))
             {
                 var expandedZones = System.Text.Json.JsonSerializer.Deserialize<string[]>(expandedZonesJson) ?? [];
@@ -810,7 +905,7 @@ else if (_error is not null)
             }
 
             // Restore expanded hosts from sessionStorage
-            var expandedHostsJson = await JS.InvokeAsync<string>("sessionStorage.getItem", "dns_expanded_hosts");
+            var expandedHostsJson = await JS.InvokeAsync<string>("sessionStorage.getItem", $"dns_expanded_hosts_{_selectedProvider}");
             if (!string.IsNullOrEmpty(expandedHostsJson))
             {
                 var expandedHosts = System.Text.Json.JsonSerializer.Deserialize<string[]>(expandedHostsJson) ?? [];
@@ -833,10 +928,10 @@ else if (_error is not null)
         try
         {
             var expandedZonesJson = System.Text.Json.JsonSerializer.Serialize(_expandedZones.ToArray());
-            await JS.InvokeVoidAsync("sessionStorage.setItem", "dns_expanded_zones", expandedZonesJson);
+            await JS.InvokeVoidAsync("sessionStorage.setItem", $"dns_expanded_zones_{_selectedProvider}", expandedZonesJson);
 
             var expandedHostsJson = System.Text.Json.JsonSerializer.Serialize(_expandedHosts.ToArray());
-            await JS.InvokeVoidAsync("sessionStorage.setItem", "dns_expanded_hosts", expandedHostsJson);
+            await JS.InvokeVoidAsync("sessionStorage.setItem", $"dns_expanded_hosts_{_selectedProvider}", expandedHostsJson);
         }
         catch (Exception ex)
         {
@@ -844,4 +939,3 @@ else if (_error is not null)
         }
     }
 }
-

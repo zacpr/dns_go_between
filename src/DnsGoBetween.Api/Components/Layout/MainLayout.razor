@@ -8,6 +8,13 @@
                 <span class="user-info">&#x1F464; @context.User.Identity?.Name</span>
             </Authorized>
         </AuthorizeView>
+        <AuthorizeView Policy="WritePolicy">
+            <Authorized>
+                <a class="api-link" href="/settings" title="Settings">⚙️ Settings</a>
+                <a class="api-link" href="/history" title="Audit History">📜 History</a>
+                <a class="api-link" href="/health-status" title="System Health">❤️ Health</a>
+            </Authorized>
+        </AuthorizeView>
         <a class="api-link" href="/swagger" target="_blank">API Docs</a>
     </header>
     <main class="content">

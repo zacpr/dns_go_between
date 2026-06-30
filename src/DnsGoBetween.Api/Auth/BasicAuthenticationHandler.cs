@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using System.DirectoryServices.AccountManagement;
 using DnsGoBetween.Api.Security;
+using DnsGoBetween.Core.Interfaces;
 using DnsGoBetween.Core.Configuration;
 
 namespace DnsGoBetween.Api.Auth;
@@ -17,17 +18,20 @@ public sealed class BasicAuthenticationHandler : AuthenticationHandler<Authentic
     public const string SchemeName = "Basic";
     private readonly AuthOptions _authOptions;
     private readonly BasicAuthenticationAttemptLimiter _attemptLimiter;
+    private readonly IAuditHistoryStore _historyStore;
 
     public BasicAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
         IOptions<AuthOptions> authOptions,
-        BasicAuthenticationAttemptLimiter attemptLimiter)
+        BasicAuthenticationAttemptLimiter attemptLimiter,
+        IAuditHistoryStore historyStore)
         : base(options, logger, encoder)
     {
         _authOptions = authOptions.Value;
         _attemptLimiter = attemptLimiter;
+        _historyStore = historyStore;
     }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -83,10 +87,12 @@ public sealed class BasicAuthenticationHandler : AuthenticationHandler<Authentic
             if (principalData is null)
             {
                 _attemptLimiter.RegisterFailure(remoteAddress);
+                LogLogon(userName, remoteAddress, false, "Invalid username or password.");
                 return Task.FromResult(AuthenticateResult.Fail("Invalid username or password."));
             }
 
             _attemptLimiter.RegisterSuccess(remoteAddress);
+            LogLogon(principalData.NameIdentifier, remoteAddress, true, null);
 
             var claims = new List<Claim>
             {
@@ -114,6 +120,19 @@ public sealed class BasicAuthenticationHandler : AuthenticationHandler<Authentic
             Logger.LogWarning(ex, "Basic authentication failed.");
             return Task.FromResult(AuthenticateResult.Fail("Authentication failed."));
         }
+    }
+
+    private void LogLogon(string user, string ip, bool success, string? errorMessage)
+    {
+        _historyStore.AddEntry(new AuditHistoryEntry
+        {
+            TimestampUtc = DateTimeOffset.UtcNow,
+            User = user,
+            Action = "Logon",
+            Target = ip,
+            Success = success,
+            ErrorMessage = errorMessage
+        });
     }
 
     private static AuthenticatedPrincipal? ValidateCredentials(string userName, string password)
