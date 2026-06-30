@@ -29,7 +29,8 @@
           Type="ownProcess"
           Start="auto"
           ErrorControl="normal"
-          Account="LocalSystem" />
+          Account="[SERVICE_ACCOUNT]"
+          Password="[SERVICE_PASSWORD]" />
 
         <!--
           Stop="both"      — stop the service on both uninstall and upgrades.

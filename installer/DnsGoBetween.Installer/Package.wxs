@@ -6,7 +6,8 @@
   All other published files are pulled in via HarvestDirectory (see .wixproj).
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
-     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
 
   <Package
     Name="DNS Go-Between"
@@ -63,6 +64,17 @@
     <Feature Id="Main" Title="DNS Go-Between" Level="1">
       <ComponentGroupRef Id="ServiceComponent" />
       <ComponentGroupRef Id="HarvestedFiles" />
+      
+      <!-- Securely patches the PFX password directly from the MSI property into appsettings.json -->
+      <Component Id="SecurePfxPasswordComponent" Directory="INSTALLFOLDER" Guid="*">
+        <Condition>CERT_PFX_PASSWORD</Condition>
+        <RegistryValue Root="HKLM" Key="Software\DNS Go-Between\Installer" Name="PfxPasswordSet" Type="integer" Value="1" KeyPath="yes" />
+        <util:JsonFile Id="UpdatePfxPassword"
+                       File="[INSTALLFOLDER]appsettings.json"
+                       ElementPath="$.Tls.Certificate"
+                       Name="PfxPassword"
+                       Value="[CERT_PFX_PASSWORD]" />
+      </Component>
     </Feature>
 
     <CustomAction
@@ -92,7 +104,7 @@
     <CustomAction
       Id="UpdateConfig"
       Directory="System64Folder"
-      ExeCommand='WindowsPowerShell\v1.0\powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "[INSTALLFOLDER]scripts\update-config.ps1" -InstallDir "[INSTALLFOLDER]\" -AllowedZonesString "[ALLOWEDZONES]" -HttpsPort "[PORT]" -CustomHostname "[API_HOSTNAME]" -CertSource "[CERT_SOURCE]" -CertThumbprint "[CERT_THUMBPRINT]" -CertPfxPath "[CERT_PFX_PATH]" -CertPfxPassword "[CERT_PFX_PASSWORD]"'
+      ExeCommand='WindowsPowerShell\v1.0\powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "[INSTALLFOLDER]scripts\update-config.ps1" -InstallDir "[INSTALLFOLDER]\" -AllowedZonesString "[ALLOWEDZONES]" -HttpsPort "[PORT]" -CustomHostname "[API_HOSTNAME]" -CertSource "[CERT_SOURCE]" -CertThumbprint "[CERT_THUMBPRINT]" -CertPfxPath "[CERT_PFX_PATH]"'
       Execute="deferred"
       Impersonate="no"
       Return="ignore" />

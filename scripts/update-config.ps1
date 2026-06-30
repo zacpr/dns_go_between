@@ -22,10 +22,7 @@ param(
     [string]$CertThumbprint = "",
 
     [Parameter(Mandatory=$false)]
-    [string]$CertPfxPath = "",
-
-    [Parameter(Mandatory=$false)]
-    [string]$CertPfxPassword = ""
+    [string]$CertPfxPath = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -107,7 +104,6 @@ try {
     Write-Log "CertSource: $CertSource"
     Write-Log "CertThumbprintProvided: $([string]::IsNullOrWhiteSpace($CertThumbprint) -eq $false)"
     Write-Log "CertPfxPathProvided: $([string]::IsNullOrWhiteSpace($CertPfxPath) -eq $false)"
-    Write-Log "CertPfxPasswordProvided: $([string]::IsNullOrWhiteSpace($CertPfxPassword) -eq $false)"
 
     $port = 0
     if (-not [int]::TryParse($HttpsPort, [ref]$port) -or $port -lt 1 -or $port -gt 65535) {
@@ -191,14 +187,12 @@ try {
             $trimmedPfxPath = $CertPfxPath.Trim()
             if (-not [string]::IsNullOrWhiteSpace($trimmedPfxPath) -and (Test-Path $trimmedPfxPath)) {
                 $json.Tls.Certificate.PfxPath = $trimmedPfxPath
-                $json.Tls.Certificate.PfxPassword = $CertPfxPassword
                 $json.Tls.Certificate.Thumbprint = ""
                 Write-Log "Configured TLS certificate source: PFX"
             }
             else {
                 Write-Log "PFX mode selected but file path is missing or not found."
                 $json.Tls.Certificate.PfxPath = ""
-                $json.Tls.Certificate.PfxPassword = ""
                 if ($hasCustomHostname) {
                     $json.Tls.Certificate.Thumbprint = ""
                     Write-Log "Custom hostname is set, so no fallback auto certificate selection was performed."
@@ -235,7 +229,6 @@ try {
 
             $json.Tls.Certificate.Thumbprint = if ($thumbprint) { $thumbprint } else { "" }
             $json.Tls.Certificate.PfxPath = ""
-            $json.Tls.Certificate.PfxPassword = ""
             Write-Log "Configured TLS certificate source: STORE"
         }
     }
