@@ -2,6 +2,7 @@ using DnsGoBetween.Core.Configuration;
 using DnsGoBetween.Core.Interfaces;
 using DnsGoBetween.Core.Models;
 using DnsGoBetween.Infrastructure.Dns;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -12,7 +13,7 @@ namespace DnsGoBetween.Tests;
 public class DnsRecordValidationTests
 {
     private static DnsRecordService CreateService(
-        IPowerShellDnsExecutor executor,
+        IDnsProvider executor,
         string[]? allowedZones = null,
         string[]? allowedTypes = null)
     {
@@ -21,7 +22,8 @@ public class DnsRecordValidationTests
             AllowedZones = allowedZones ?? [],
             AllowedRecordTypes = allowedTypes ?? ["A", "AAAA", "CNAME", "PTR", "TXT"]
         });
-        return new DnsRecordService(executor, opts, NullLogger<DnsRecordService>.Instance);
+        var config = new ConfigurationBuilder().Build();
+        return new DnsRecordService(new[] { executor }, opts, NullLogger<DnsRecordService>.Instance, config);
     }
 
     // ── Zone allowlist ────────────────────────────────────────────────────────
@@ -29,11 +31,12 @@ public class DnsRecordValidationTests
     [Fact]
     public async Task AddRecord_BlockedZone_ThrowsUnauthorizedAccessException()
     {
-        var executor = new Mock<IPowerShellDnsExecutor>();
+        var executor = new Mock<IDnsProvider>();
+        executor.Setup(e => e.ProviderName).Returns("Windows");
         var svc = CreateService(executor.Object, allowedZones: ["allowed.local"]);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            svc.AddRecordAsync(new AddRecordRequest
+            svc.AddRecordAsync("Windows", new AddRecordRequest
             {
                 ZoneName = "evil.zone",
                 HostName = "test",
@@ -45,7 +48,8 @@ public class DnsRecordValidationTests
     [Fact]
     public async Task ListZones_FiltersToAllowedZones()
     {
-        var executor = new Mock<IPowerShellDnsExecutor>();
+        var executor = new Mock<IDnsProvider>();
+        executor.Setup(e => e.ProviderName).Returns("Windows");
         executor.Setup(e => e.GetZonesAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<DnsZone>
                 {
@@ -55,7 +59,7 @@ public class DnsRecordValidationTests
                 });
 
         var svc = CreateService(executor.Object, allowedZones: ["allowed.local", "also.allowed.local"]);
-        var zones = await svc.ListZonesAsync();
+        var zones = await svc.ListZonesAsync("Windows");
 
         Assert.Equal(2, zones.Count);
         Assert.DoesNotContain(zones, z => z.Name == "forbidden.zone");
@@ -66,11 +70,12 @@ public class DnsRecordValidationTests
     [Fact]
     public async Task AddRecord_DisallowedRecordType_ThrowsNotSupportedException()
     {
-        var executor = new Mock<IPowerShellDnsExecutor>();
+        var executor = new Mock<IDnsProvider>();
+        executor.Setup(e => e.ProviderName).Returns("Windows");
         var svc = CreateService(executor.Object, allowedTypes: ["A"]);
 
         await Assert.ThrowsAsync<NotSupportedException>(() =>
-            svc.AddRecordAsync(new AddRecordRequest
+            svc.AddRecordAsync("Windows", new AddRecordRequest
             {
                 ZoneName = "example.local",
                 HostName = "test",
@@ -84,11 +89,12 @@ public class DnsRecordValidationTests
     [Fact]
     public async Task AddRecord_InvalidIPv4_ThrowsArgumentException()
     {
-        var executor = new Mock<IPowerShellDnsExecutor>();
+        var executor = new Mock<IDnsProvider>();
+        executor.Setup(e => e.ProviderName).Returns("Windows");
         var svc = CreateService(executor.Object);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            svc.AddRecordAsync(new AddRecordRequest
+            svc.AddRecordAsync("Windows", new AddRecordRequest
             {
                 ZoneName = "example.local",
                 HostName = "test",
@@ -100,11 +106,12 @@ public class DnsRecordValidationTests
     [Fact]
     public async Task AddRecord_IPv6AsA_ThrowsArgumentException()
     {
-        var executor = new Mock<IPowerShellDnsExecutor>();
+        var executor = new Mock<IDnsProvider>();
+        executor.Setup(e => e.ProviderName).Returns("Windows");
         var svc = CreateService(executor.Object);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            svc.AddRecordAsync(new AddRecordRequest
+            svc.AddRecordAsync("Windows", new AddRecordRequest
             {
                 ZoneName = "example.local",
                 HostName = "test",
@@ -118,11 +125,12 @@ public class DnsRecordValidationTests
     [Fact]
     public async Task AddRecord_InvalidIPv6_ThrowsArgumentException()
     {
-        var executor = new Mock<IPowerShellDnsExecutor>();
+        var executor = new Mock<IDnsProvider>();
+        executor.Setup(e => e.ProviderName).Returns("Windows");
         var svc = CreateService(executor.Object);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            svc.AddRecordAsync(new AddRecordRequest
+            svc.AddRecordAsync("Windows", new AddRecordRequest
             {
                 ZoneName = "example.local",
                 HostName = "test",
@@ -142,14 +150,15 @@ public class DnsRecordValidationTests
     [InlineData("a")]
     public async Task AddRecord_ValidHostName_DoesNotThrow(string hostName)
     {
-        var executor = new Mock<IPowerShellDnsExecutor>();
+        var executor = new Mock<IDnsProvider>();
+        executor.Setup(e => e.ProviderName).Returns("Windows");
         executor
             .Setup(e => e.AddResourceRecordAsync(It.IsAny<AddRecordRequest>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         var svc = CreateService(executor.Object);
         var ex = await Record.ExceptionAsync(() =>
-            svc.AddRecordAsync(new AddRecordRequest
+            svc.AddRecordAsync("Windows", new AddRecordRequest
             {
                 ZoneName = "example.local",
                 HostName = hostName,
@@ -163,11 +172,12 @@ public class DnsRecordValidationTests
     [Fact]
     public async Task AddRecord_WildcardCName_ThrowsArgumentException()
     {
-        var executor = new Mock<IPowerShellDnsExecutor>();
+        var executor = new Mock<IDnsProvider>();
+        executor.Setup(e => e.ProviderName).Returns("Windows");
         var svc = CreateService(executor.Object);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            svc.AddRecordAsync(new AddRecordRequest
+            svc.AddRecordAsync("Windows", new AddRecordRequest
             {
                 ZoneName = "example.local",
                 HostName = "*",
@@ -184,11 +194,12 @@ public class DnsRecordValidationTests
     [InlineData("   ")]
     public async Task AddRecord_InvalidHostName_ThrowsArgumentException(string hostName)
     {
-        var executor = new Mock<IPowerShellDnsExecutor>();
+        var executor = new Mock<IDnsProvider>();
+        executor.Setup(e => e.ProviderName).Returns("Windows");
         var svc = CreateService(executor.Object);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            svc.AddRecordAsync(new AddRecordRequest
+            svc.AddRecordAsync("Windows", new AddRecordRequest
             {
                 ZoneName = "example.local",
                 HostName = hostName,
@@ -202,11 +213,12 @@ public class DnsRecordValidationTests
     [Fact]
     public async Task AddRecord_CnameEmptyData_ThrowsArgumentException()
     {
-        var executor = new Mock<IPowerShellDnsExecutor>();
+        var executor = new Mock<IDnsProvider>();
+        executor.Setup(e => e.ProviderName).Returns("Windows");
         var svc = CreateService(executor.Object);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            svc.AddRecordAsync(new AddRecordRequest
+            svc.AddRecordAsync("Windows", new AddRecordRequest
             {
                 ZoneName = "example.local",
                 HostName = "alias",
@@ -218,11 +230,12 @@ public class DnsRecordValidationTests
     [Fact]
     public async Task AddRecord_TxtEmptyData_ThrowsArgumentException()
     {
-        var executor = new Mock<IPowerShellDnsExecutor>();
+        var executor = new Mock<IDnsProvider>();
+        executor.Setup(e => e.ProviderName).Returns("Windows");
         var svc = CreateService(executor.Object);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            svc.AddRecordAsync(new AddRecordRequest
+            svc.AddRecordAsync("Windows", new AddRecordRequest
             {
                 ZoneName = "example.local",
                 HostName = "_acme-challenge",
@@ -234,14 +247,15 @@ public class DnsRecordValidationTests
     [Fact]
     public async Task AddRecord_TxtValidData_DoesNotThrow()
     {
-        var executor = new Mock<IPowerShellDnsExecutor>();
+        var executor = new Mock<IDnsProvider>();
+        executor.Setup(e => e.ProviderName).Returns("Windows");
         executor
             .Setup(e => e.AddResourceRecordAsync(It.IsAny<AddRecordRequest>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         var svc = CreateService(executor.Object);
         var ex = await Record.ExceptionAsync(() =>
-            svc.AddRecordAsync(new AddRecordRequest
+            svc.AddRecordAsync("Windows", new AddRecordRequest
             {
                 ZoneName = "example.local",
                 HostName = "_acme-challenge",
@@ -257,11 +271,12 @@ public class DnsRecordValidationTests
     [Fact]
     public async Task DeleteRecord_BlockedZone_ThrowsUnauthorizedAccessException()
     {
-        var executor = new Mock<IPowerShellDnsExecutor>();
+        var executor = new Mock<IDnsProvider>();
+        executor.Setup(e => e.ProviderName).Returns("Windows");
         var svc = CreateService(executor.Object, allowedZones: ["allowed.local"]);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            svc.DeleteRecordAsync(new DeleteRecordRequest
+            svc.DeleteRecordAsync("Windows", new DeleteRecordRequest
             {
                 ZoneName = "evil.zone",
                 HostName = "test",
