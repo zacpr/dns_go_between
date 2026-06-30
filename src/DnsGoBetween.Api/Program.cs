@@ -143,11 +143,11 @@ app.Logger.LogInformation(
 app.Logger.LogInformation(
     "Health endpoint access: /health/* allows anonymous remote callers.");
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Swagger UI is exposed in all environments so operators can use the API Docs
+// link from the Blazor UI on production installs. The endpoints themselves
+// still require authentication via the normal authn/authz pipeline.
+app.UseSwagger();
+app.UseSwaggerUI();
 
 if (tlsOptions.RedirectHttpToHttps)
 {

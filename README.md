@@ -191,9 +191,9 @@ Restart-Service DnsGoBetween
 
 All write endpoints require a member of `DnsAdmins` or `Domain Admins`. The `POST` / `DELETE` endpoints support TXT records, which makes the API suitable as an ACME DNS-01 backend — see [Automated certificate issuance](#automated-certificate-issuance-acme-dns-01) above.
 
-Swagger (Development environment):
+Swagger:
 
-- `/swagger`
+- `/swagger` (available in all environments; endpoints still require auth)
 
 Health:
 
