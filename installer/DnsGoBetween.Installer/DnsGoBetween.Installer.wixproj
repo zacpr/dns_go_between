@@ -8,6 +8,22 @@
     -->
     <Version Condition="'$(Version)' == ''">1.0.0</Version>
     <!--
+      MsiVersion is the numeric-only portion (M.N.B[.R]) that MSI accepts.
+      build-installer.ps1 strips any pre-release suffix (e.g. -beta.3) and
+      passes the result via -p:MsiVersion. The WiX preprocessor reads it as
+      $(var.MsiVersion) in Package.wxs.
+    -->
+    <MsiVersion Condition="'$(MsiVersion)' == ''">$(Version)</MsiVersion>
+    <DefineConstants>$(DefineConstants);MsiVersion=$(MsiVersion)</DefineConstants>
+    <!--
+      ICE61 is suppressed because MajorUpgrade.AllowSameVersionUpgrades=yes
+      deliberately sets UpgradeTable.Maximum = current ProductVersion, which
+      always triggers ICE61. This is documented WiX behavior, not a real
+      defect: it lets us reinstall the same MSI version (useful for betas
+      where 1.3.9-beta.1 and 1.3.9-beta.2 both compile to MSI 1.3.9.0).
+    -->
+    <SuppressIces>ICE61</SuppressIces>
+    <!--
       PublishDir must point at the output of `dotnet publish` for DnsGoBetween.Api.
       The build-installer.ps1 script sets this automatically.
       Override manually if building from an IDE:

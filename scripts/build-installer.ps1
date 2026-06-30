@@ -34,6 +34,15 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+# MSI's ProductVersion field accepts only numeric M.N.B[.R] (max 255.255.65535.65535),
+# so we strip any semver pre-release suffix like '-beta.3' before handing it to WiX.
+# Example: '1.3.9-beta.3' -> MsiVersion '1.3.9'. The full $Version is still used
+# for filenames and the dotnet publish AssemblyVersion so betas remain distinguishable.
+$MsiVersion = ($Version -split '-')[0]
+if ($MsiVersion -notmatch '^\d+(\.\d+){0,3}$') {
+    throw "Computed MsiVersion '$MsiVersion' (from -Version '$Version') is not a valid MSI version (expected up to four numeric parts)."
+}
+
 # ── Paths ─────────────────────────────────────────────────────────────────────
 
 $Root          = Split-Path $PSScriptRoot -Parent
@@ -52,6 +61,7 @@ Write-Host "========================================" -ForegroundColor Cyan
 
 Write-Host "  DNS Go-Between Installer Build"        -ForegroundColor Cyan
 Write-Host "  Version : $Version"                   -ForegroundColor Cyan
+Write-Host "  MsiVer  : $MsiVersion"                -ForegroundColor Cyan
 Write-Host "  Config  : $Configuration"             -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 
@@ -270,6 +280,7 @@ Write-Host "       Harvested file list written: $FinalHarvestWxs" -ForegroundCol
 & dotnet build $InstallerProj `
     --configuration Release `
     -p:Version=$Version `
+    -p:MsiVersion=$MsiVersion `
     "-p:PublishDir=$PublishDir\" `
     "-p:OutputPath=$DistDir\" `
     "-p:MSBuildProjectExtensionsPath=$InstallerObjDir\" `

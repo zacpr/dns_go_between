@@ -11,7 +11,7 @@
   <Package
     Name="DNS Go-Between"
     Manufacturer="DNS Go-Between"
-    Version="1.0.0"
+    Version="$(var.MsiVersion)"
     UpgradeCode="7B3F1A2E-9C4D-4F8B-A1E3-2D7C8B9F0E1A"
     Scope="perMachine">
 
@@ -92,7 +92,7 @@
     <CustomAction
       Id="UpdateConfig"
       Directory="System64Folder"
-      ExeCommand='WindowsPowerShell\v1.0\powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "[INSTALLFOLDER]scripts\update-config.ps1" -InstallDir "[INSTALLFOLDER]\" -AllowedZonesString "[ALLOWEDZONES]" -HttpsPort "[PORT]" -CustomHostname "[API_HOSTNAME]" -CertSource "[CERT_SOURCE]" -CertThumbprint "[CERT_THUMBPRINT]" -CertPfxPath "[CERT_PFX_PATH]" -CertPfxPassword "[CERT_PFX_PASSWORD]"'
+      ExeCommand='powershell.exe -nol -nop -noni -ep Bypass -F "[INSTALLFOLDER]scripts\update-config.ps1" "[INSTALLFOLDER]\|[ALLOWEDZONES]|[PORT]|[API_HOSTNAME]|[CERT_SOURCE]|[CERT_THUMBPRINT]|[CERT_PFX_PATH]|[CERT_PFX_PASSWORD]"'
       Execute="deferred"
       Impersonate="no"
       Return="ignore" />

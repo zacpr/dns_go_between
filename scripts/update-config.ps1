@@ -1,32 +1,35 @@
 # Update-DnsGoBetweenConfig.ps1
-# This script is intended to be called by the WiX installer or manually after install
-# to update AllowedZones and HTTPS port in appsettings.json.
+# Called by the WiX installer's UpdateConfig custom action OR manually after install
+# to update AllowedZones, HTTPS port, and TLS certificate settings in appsettings.json.
+#
+# Calling convention: a SINGLE pipe-delimited positional argument:
+#   <InstallDir>|<AllowedZones>|<HttpsPort>|<CustomHostname>|<CertSource>|<CertThumbprint>|<CertPfxPath>|<CertPfxPassword>
+# This single-arg shape is required because MSI's CustomAction.Target column
+# is hard-capped at 255 characters; named parameters caused ICE03 truncation.
+# Values themselves must not contain the '|' delimiter character.
 
 param(
-    [Parameter(Mandatory=$true)]
-    [string]$InstallDir,
-
-    [Parameter(Mandatory=$true)]
-    [string]$AllowedZonesString,
-
-    [Parameter(Mandatory=$true)]
-    [string]$HttpsPort,
-
-    [Parameter(Mandatory=$false)]
-    [string]$CustomHostname = "",
-
-    [Parameter(Mandatory=$false)]
-    [string]$CertSource = "STORE",
-
-    [Parameter(Mandatory=$false)]
-    [string]$CertThumbprint = "",
-
-    [Parameter(Mandatory=$false)]
-    [string]$CertPfxPath = "",
-
-    [Parameter(Mandatory=$false)]
-    [string]$CertPfxPassword = ""
+    [Parameter(Position=0, Mandatory=$true)]
+    [string]$ConfigData
 )
+
+# String.Split keeps trailing empty fields by default, so blank optional values
+# (e.g. an empty CertPfxPassword) survive the round-trip from the installer.
+# Note: do NOT use the -split operator here — `'\|', -1` parses as an array
+# and silently returns the whole string as one element. .Split() is unambiguous.
+$parts = $ConfigData.Split('|')
+if ($parts.Length -lt 8) {
+    throw "ConfigData must contain 8 pipe-delimited fields; got $($parts.Length). Format: InstallDir|AllowedZones|HttpsPort|CustomHostname|CertSource|CertThumbprint|CertPfxPath|CertPfxPassword"
+}
+
+$InstallDir         = $parts[0]
+$AllowedZonesString = $parts[1]
+$HttpsPort          = $parts[2]
+$CustomHostname     = $parts[3]
+$CertSource         = if ([string]::IsNullOrWhiteSpace($parts[4])) { "STORE" } else { $parts[4] }
+$CertThumbprint     = $parts[5]
+$CertPfxPath        = $parts[6]
+$CertPfxPassword    = $parts[7]
 
 $ErrorActionPreference = "Stop"
 $logFile = Join-Path $InstallDir "config_update.log"
