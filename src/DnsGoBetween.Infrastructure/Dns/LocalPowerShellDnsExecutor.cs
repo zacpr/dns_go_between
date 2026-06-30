@@ -14,11 +14,13 @@ namespace DnsGoBetween.Infrastructure.Dns;
 /// Executes DNS Server PowerShell cmdlets directly on the local machine.
 /// Requires the DnsServer role and RSAT DNS tools to be installed.
 /// </summary>
-public sealed class LocalPowerShellDnsExecutor : IPowerShellDnsExecutor
+public sealed class LocalPowerShellDnsExecutor : IDnsProvider
 {
     private readonly ILogger<LocalPowerShellDnsExecutor> _logger;
     private readonly DnsOptions _options;
     private const string WindowsPowerShellPath = @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe";
+
+    public string ProviderName => "Windows";
 
     public LocalPowerShellDnsExecutor(
         ILogger<LocalPowerShellDnsExecutor> logger,

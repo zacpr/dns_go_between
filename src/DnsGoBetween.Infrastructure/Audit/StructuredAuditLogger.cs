@@ -6,9 +6,13 @@ namespace DnsGoBetween.Infrastructure.Audit;
 public sealed class StructuredAuditLogger : IAuditLogger
 {
     private readonly ILogger<StructuredAuditLogger> _logger;
+    private readonly IAuditHistoryStore _historyStore;
 
-    public StructuredAuditLogger(ILogger<StructuredAuditLogger> logger)
-        => _logger = logger;
+    public StructuredAuditLogger(ILogger<StructuredAuditLogger> logger, IAuditHistoryStore historyStore)
+    {
+        _logger = logger;
+        _historyStore = historyStore;
+    }
 
     public void LogWrite(
         string user,
@@ -30,5 +34,16 @@ public sealed class StructuredAuditLogger : IAuditLogger
             _logger.LogWarning(
                 "[AUDIT] CorrelationId={CorrelationId} User={User} Action={Action} Target={Target} Outcome=Failure FailureType={FailureType}",
                 cid, user, action, normalizedTarget, normalizedError);
+
+        _historyStore.AddEntry(new AuditHistoryEntry
+        {
+            TimestampUtc = DateTimeOffset.UtcNow,
+            User = user,
+            Action = action,
+            Target = normalizedTarget,
+            Success = success,
+            ErrorMessage = success ? null : normalizedError,
+            CorrelationId = cid
+        });
     }
 }

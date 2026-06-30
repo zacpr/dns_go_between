@@ -4,29 +4,58 @@ using DnsGoBetween.Core.Configuration;
 using DnsGoBetween.Core.Interfaces;
 using DnsGoBetween.Core.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using System.Security.Claims;
 using Microsoft.Extensions.Options;
 
 namespace DnsGoBetween.Infrastructure.Dns;
 
 public sealed class DnsRecordService : IDnsRecordService
 {
-    private readonly IPowerShellDnsExecutor _executor;
+    private readonly IEnumerable<IDnsProvider> _providers;
     private readonly DnsOptions _options;
     private readonly ILogger<DnsRecordService> _logger;
+    private readonly IConfiguration _config;
 
     public DnsRecordService(
-        IPowerShellDnsExecutor executor,
+        IEnumerable<IDnsProvider> providers,
         IOptions<DnsOptions> options,
-        ILogger<DnsRecordService> logger)
+        ILogger<DnsRecordService> logger,
+        IConfiguration config)
     {
-        _executor = executor;
+        _providers = providers;
         _options = options.Value;
         _logger = logger;
+        _config = config;
+    }
+    
+    private IDnsProvider GetProvider(string providerName)
+    {
+        var provider = _providers.FirstOrDefault(p => p.ProviderName.Equals(providerName, StringComparison.OrdinalIgnoreCase));
+        if (provider is null)
+            throw new ArgumentException($"DNS Provider '{providerName}' is not configured or found.");
+        return provider;
     }
 
-    public async Task<IReadOnlyList<DnsZone>> ListZonesAsync(CancellationToken ct = default)
+    public IEnumerable<string> GetAvailableProviders() => _providers.Select(p => p.ProviderName);
+
+    public bool CanWrite(ClaimsPrincipal user, string providerName)
     {
-        var zones = await _executor.GetZonesAsync(ct);
+        if (user.Identity?.IsAuthenticated != true) return false;
+
+        var roles = _config.GetSection($"Dns:Providers:{providerName}:WriteRoles").Get<string[]>();
+        if (roles is null || roles.Length == 0)
+        {
+            roles = _config.GetSection("Dns:DefaultWriteRoles").Get<string[]>() ?? ["DnsAdmins", "Domain Admins"];
+        }
+
+        return roles.Any(r => user.IsInRole(r));
+    }
+
+    public async Task<IReadOnlyList<DnsZone>> ListZonesAsync(string providerName = "Windows", CancellationToken ct = default)
+    {
+        var provider = GetProvider(providerName);
+        var zones = await provider.GetZonesAsync(ct);
 
         if (_options.AllowedZones.Length > 0)
             zones = zones
@@ -37,13 +66,14 @@ public sealed class DnsRecordService : IDnsRecordService
     }
 
     public Task<IReadOnlyList<DnsRecord>> ListRecordsAsync(
-        string zone, string? node = null, CancellationToken ct = default)
+        string providerName, string zone, string? node = null, CancellationToken ct = default)
     {
         ValidateZone(zone);
-        return _executor.GetResourceRecordsAsync(zone, node, ct);
+        var provider = GetProvider(providerName);
+        return provider.GetResourceRecordsAsync(zone, node, ct);
     }
 
-    public Task AddRecordAsync(AddRecordRequest request, CancellationToken ct = default)
+    public Task AddRecordAsync(string providerName, AddRecordRequest request, CancellationToken ct = default)
     {
         ValidateZone(request.ZoneName);
         ValidateRecordType(request.RecordType);
@@ -52,10 +82,11 @@ public sealed class DnsRecordService : IDnsRecordService
             allowWildcard: request.RecordType == DnsRecordType.A,
             allowUnderscore: request.RecordType == DnsRecordType.TXT);
         ValidateRecordData(request.RecordType, request.Data);
-        return _executor.AddResourceRecordAsync(request, ct);
+        var provider = GetProvider(providerName);
+        return provider.AddResourceRecordAsync(request, ct);
     }
 
-    public Task DeleteRecordAsync(DeleteRecordRequest request, CancellationToken ct = default)
+    public Task DeleteRecordAsync(string providerName, DeleteRecordRequest request, CancellationToken ct = default)
     {
         ValidateZone(request.ZoneName);
         ValidateRecordType(request.RecordType);
@@ -63,7 +94,8 @@ public sealed class DnsRecordService : IDnsRecordService
             request.HostName,
             allowWildcard: request.RecordType == DnsRecordType.A,
             allowUnderscore: request.RecordType == DnsRecordType.TXT);
-        return _executor.RemoveResourceRecordAsync(request, ct);
+        var provider = GetProvider(providerName);
+        return provider.RemoveResourceRecordAsync(request, ct);
     }
 
     // ── Validation ────────────────────────────────────────────────────────────
@@ -124,12 +156,24 @@ public sealed class DnsRecordService : IDnsRecordService
                     throw new ArgumentException($"Invalid IPv6 address: '{data}'.");
                 break;
 
-            case DnsRecordType.CNAME:
+            case DnsRecordType.CNAME: // Fallthrough
             case DnsRecordType.PTR:
+                if (string.IsNullOrWhiteSpace(data))
+                    throw new ArgumentException(
+                        $"Record data cannot be empty for {type} records.");
+                // The data for a CNAME or PTR must be a valid hostname.
+                ValidateHostName(data, allowWildcard: false, allowUnderscore: false);
+                break;
+
             case DnsRecordType.TXT:
                 if (string.IsNullOrWhiteSpace(data))
                     throw new ArgumentException(
                         $"Record data cannot be empty for {type} records.");
+                // Enforce a reasonable length limit to prevent abuse. 4096 is a generous limit
+                // that accommodates long DKIM keys but prevents absurdly large inputs.
+                if (data.Length > 4096)
+                    throw new ArgumentException(
+                        $"TXT record data is too long. Maximum length is 4096 characters.");
                 break;
         }
     }
