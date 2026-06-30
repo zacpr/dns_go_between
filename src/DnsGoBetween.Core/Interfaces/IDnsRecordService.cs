@@ -7,8 +7,10 @@ namespace DnsGoBetween.Core.Interfaces;
 /// </summary>
 public interface IDnsRecordService
 {
-    Task<IReadOnlyList<DnsZone>> ListZonesAsync(CancellationToken ct = default);
-    Task<IReadOnlyList<DnsRecord>> ListRecordsAsync(string zone, string? node = null, CancellationToken ct = default);
-    Task AddRecordAsync(AddRecordRequest request, CancellationToken ct = default);
-    Task DeleteRecordAsync(DeleteRecordRequest request, CancellationToken ct = default);
+    IEnumerable<string> GetAvailableProviders();
+    Task<IReadOnlyList<DnsZone>> ListZonesAsync(string provider = "Windows", CancellationToken ct = default);
+    Task<IReadOnlyList<DnsRecord>> ListRecordsAsync(string provider, string zone, string? node = null, CancellationToken ct = default);
+    Task AddRecordAsync(string provider, AddRecordRequest request, CancellationToken ct = default);
+    Task DeleteRecordAsync(string provider, DeleteRecordRequest request, CancellationToken ct = default);
+    bool CanWrite(System.Security.Claims.ClaimsPrincipal user, string provider);
 }
