@@ -66,8 +66,7 @@
       <ComponentGroupRef Id="HarvestedFiles" />
       
       <!-- Securely patches the PFX password directly from the MSI property into appsettings.json -->
-      <Component Id="SecurePfxPasswordComponent" Directory="INSTALLFOLDER" Guid="*">
-        <Condition>CERT_PFX_PASSWORD</Condition>
+      <Component Id="SecurePfxPasswordComponent" Directory="INSTALLFOLDER" Guid="*" Condition="CERT_PFX_PASSWORD">
         <RegistryValue Root="HKLM" Key="Software\DNS Go-Between\Installer" Name="PfxPasswordSet" Type="integer" Value="1" KeyPath="yes" />
         <util:JsonFile Id="UpdatePfxPassword"
                        File="[INSTALLFOLDER]appsettings.json"
