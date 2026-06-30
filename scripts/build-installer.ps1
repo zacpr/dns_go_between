@@ -96,18 +96,12 @@ function New-HarvestedFilesWxs {
             [Parameter(Mandatory)] [string] $TargetPath
         )
 
-        $baseFullPath = [IO.Path]::GetFullPath($BasePath)
-        if (-not $baseFullPath.EndsWith([IO.Path]::DirectorySeparatorChar)) {
-            $baseFullPath += [IO.Path]::DirectorySeparatorChar
-        }
-
-        $targetFullPath = [IO.Path]::GetFullPath($TargetPath)
-        $baseUri = [Uri]$baseFullPath
-        $targetUri = [Uri]$targetFullPath
-
-        return [Uri]::UnescapeDataString(
-            $baseUri.MakeRelativeUri($targetUri).ToString().Replace('/', [IO.Path]::DirectorySeparatorChar)
-        )
+        # Use System.IO.Path.GetRelativePath for cross-platform support.
+        # The Uri.MakeRelativeUri approach below only works on Windows because
+        # Linux-style absolute paths (e.g. /tmp/...) aren't recognized as
+        # absolute URIs without a file:// scheme prefix.
+        $rel = [IO.Path]::GetRelativePath($BasePath, $TargetPath)
+        return $rel.Replace('/', [IO.Path]::DirectorySeparatorChar)
     }
 
     if (-not (Test-Path $SourceDir)) {
