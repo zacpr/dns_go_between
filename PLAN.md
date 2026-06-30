@@ -160,17 +160,34 @@ Goal: since DNS Go-Between already owns DNS write access to multiple providers, 
 
 **Effort estimate:** v1.4a happy path ~2-3 dev days. v1.4b ~3-4 days (ACME client integration is the biggest unknown). Add ~3-4 days combined for unit tests, docs, and the manual re-enroll/issue UI.
 
-### v1.5 — Provider Expansion + Cert Renewal Worker
+### v1.5 — Provider Expansion + Provider Admin UI + Cert Renewal Worker
 
 #### Tier-1 DNS providers
 - **Azure DNS** — natural fit with the Windows / AD CS direction. SDK: `Azure.ResourceManager.Dns`. Entra ID auth (managed identity when running on Azure VMs, service principal otherwise). Hybrid customers (Windows on-prem + Azure DNS for cloud zones) are the sweet spot.
 - **Google Cloud DNS** — completes the big-3 hyperscalers alongside AWS Route 53. SDK: `Google.Cloud.Dns.V1`. Service account JSON credential or workload identity.
 - **RFC 2136 (TSIG dynamic update)** — one implementation covers BIND, PowerDNS, Knot, and standards-compliant Microsoft DNS over the wire. Highest coverage-per-effort ratio in the entire roadmap. Needs a UDP/TCP DNS message library (likely `DnsClient` or a minimal hand-rolled implementation for UPDATE).
 
+#### Provider configuration moves to the web UI
+
+The MSI installer currently only knows about the local Windows provider. With the v1.5 provider explosion (Azure / GCP / RFC 2136 on top of existing Cloudflare / Route 53 / Namecheap / Remote Windows / Local Windows), trying to cram 8+ providers' worth of fields into MSI dialogs becomes both UX-hostile and a real secrets-handling problem (MSI properties get logged to `%TEMP%\MSI*.log` when verbose logging is on). Cleaner split:
+
+- **MSI stays minimal**: installs service, binds TLS cert, sets HTTPS port, configures the **local Windows** provider (only one that genuinely needs install-machine context). This is where v1.3.x already lives — just stop pretending we'll ever extend the dialogs.
+- **New `Providers.razor` admin page** (gated by Admin role, which v1.6 formalises): list configured providers with status pills, add/edit/disable, per-provider **Test Connection** button, per-provider zone discovery ("refresh zones from API").
+- **Secrets storage**: written to `appsettings.json` for v1.5 (matching existing behaviour) but with a clean abstraction (`IProviderConfigStore`) so v1.6 can swap in DPAPI / Windows Credential Manager / Azure Key Vault without touching the UI. Secrets are never round-tripped to the browser — UI sends `null` to mean "keep existing", `""` to clear, anything else to replace.
+- **Per-provider field schemas**: each `IDnsProvider` implementation declares its config schema (field name, type, secret flag, validation regex). The Razor page renders generically from that schema, so adding a future provider is purely backend work + tests.
+- **`AllowedZones` is recognised as local-Windows-only**: cloud providers' API credentials already bound their blast radius. The field becomes a per-provider optional filter (still useful for Remote Windows / Local Windows) rather than a global gate.
+- **Restart required** for provider add/remove (DI graph changes); edit-in-place hot-reloads via `IOptionsMonitor`. Surface the restart requirement clearly in the UI.
+
 #### Cert renewal worker
 - `IHostedService` inside `DnsGoBetween.Api`: daily check at startup + cron, re-enroll (AD CS or ACME, depending on cert source) at 75% of validity.
 - Pending-approval polling for AD CS templates that require CA manager approval (request ID persisted across service restarts in registry).
 - Status surfaced on the existing `HealthView.razor` (next renewal time, last attempt result, alert thresholds).
+
+#### v1.5 design notes
+- **Test Connection contract**: returns `{ok, message, zoneCount?, latencyMs}`. Run inline, not async — providers must respond within a 5-second hard timeout or report failure.
+- **Zone discovery cache**: per-provider zone list cached for 5 min to avoid hammering APIs from the picker dropdowns. Manual refresh button bypasses.
+- **Migration**: existing `appsettings.json` provider config is the source of truth on first run; the UI reads-then-writes through `IProviderConfigStore`. No DB migration required.
+- **Backwards compat**: editing `appsettings.json` by hand continues to work; the UI just reflects whatever's in the file. Last-writer-wins. Document this clearly to avoid surprise overwrites if the operator edits the file while the UI is open.
 
 ### v1.6 — Auth Modernization
 
