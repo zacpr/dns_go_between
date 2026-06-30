@@ -1,16 +1,17 @@
 # DNS Go-Between
 
-DNS Go-Between is a Windows-hosted DNS management service that exposes Windows DNS Server operations through a secure REST API and Blazor UI.
+DNS Go-Between is a Windows-hosted DNS management service that exposes DNS operations through a secure REST API and Blazor UI.
 
-It runs on the DNS server, uses local PowerShell DNS cmdlets, and is packaged as an MSI with Windows Service hosting.
+It runs on a Windows host as a service, ships as an MSI, and can manage DNS on the **local Windows DNS Server** out of the box. Additional providers (remote Windows DNS via PowerShell remoting, Cloudflare, AWS Route 53, Namecheap) can be enabled by adding their credentials to `appsettings.json`.
 
 ## What it does
 
-- Lists zones and records from Windows DNS
+- Manages DNS zones and records across one or more providers (Windows DNS, remote Windows DNS, Cloudflare, AWS Route 53, Namecheap)
 - Adds and deletes supported records (`A`, `AAAA`, `CNAME`, `PTR`, `TXT`)
-- Provides a browser UI for operators
-- Exposes API endpoints for automation/scripts
-- Enforces authz, zone/type controls, and optional IP access controls
+- Provides a browser UI for operators with Settings, Audit History, and Health views
+- Exposes provider-aware REST endpoints for automation/scripts
+- Persists a configurable audit history of every write operation
+- Enforces authz, zone/type controls, per-provider write roles, and optional IP access controls
 
 ## Automated certificate issuance (ACME DNS-01)
 
@@ -66,8 +67,10 @@ DNS Go-Between is HTTPS-first by default.
 Additional hardening in current builds:
 
 - Structured audit logging for write operations (add/delete) with correlation IDs
+- Persistent audit history (`audit_history.json`) with configurable retention
 - Sanitized API error payloads (no raw stack traces or internal command output)
 - Startup diagnostics logs include listener mode, TLS source, and redirect settings
+- Forwarded headers (`X-Forwarded-For` / `X-Forwarded-Proto`) honored from loopback proxies
 
 ## Authentication and authorization
 
@@ -81,7 +84,10 @@ Additional hardening in current builds:
     - `Auth:BasicAuthenticationLockoutSeconds`
 - Authorization:
   - Read access: authenticated users
-  - Write access (`POST` / `DELETE`): `DnsAdmins` or `Domain Admins`
+  - Write access (`POST` / `DELETE`): members of the configured write roles
+    - Default roles: `DnsAdmins`, `Domain Admins`
+    - Override globally with `Dns:DefaultWriteRoles` (array)
+    - Override per provider with `Dns:Providers:<ProviderName>:WriteRoles` (array)
 
 ## TLS certificate selection
 
@@ -166,13 +172,60 @@ Primary config file:
 
 - `C:\Program Files\DnsGoBetween\appsettings.json`
 
-Core DNS settings:
+### Core DNS settings
 
 ```json
 "Dns": {
   "AllowedZones": [],
   "AllowedRecordTypes": ["A", "AAAA", "CNAME", "PTR", "TXT"],
-  "CommandTimeoutSeconds": 30
+  "CommandTimeoutSeconds": 30,
+  "DefaultWriteRoles": ["DnsAdmins", "Domain Admins"]
+}
+```
+
+### DNS providers
+
+The local Windows DNS provider (`Windows`) is always registered. Additional providers are enabled only when their credentials are present in configuration:
+
+```json
+"Dns": {
+  // Remote Windows DNS via PowerShell remoting (WSMan)
+  "RemoteWindowsServer":   "dns-other.contoso.local",
+  "RemoteWindowsUser":     "CONTOSO\\dnsadmin",
+  "RemoteWindowsPassword": "...",
+
+  // Cloudflare — token form (preferred)
+  "CloudflareApiToken": "cf-token-...",
+  // — or legacy email + global key form
+  "CloudflareEmail":  "you@example.com",
+  "CloudflareApiKey": "...",
+
+  // AWS Route 53
+  "AwsAccessKey": "AKIA...",
+  "AwsSecretKey": "...",
+  "AwsRegion":    "us-east-1",
+
+  // Namecheap
+  "NamecheapApiUser": "user",
+  "NamecheapApiKey":  "...",
+
+  // Optional: per-provider write role overrides
+  "Providers": {
+    "Cloudflare": { "WriteRoles": ["CloudDnsOps"] },
+    "Route53":    { "WriteRoles": ["CloudDnsOps"] }
+  }
+}
+```
+
+The set of active providers is visible at runtime under **Settings** in the UI and via `GET /api/providers`.
+
+### Audit history
+
+Write operations are appended to `audit_history.json` in the install directory and surfaced in the **History** page of the UI.
+
+```json
+"Audit": {
+  "HistoryRetentionDays": 30
 }
 ```
 
@@ -184,12 +237,26 @@ Restart-Service DnsGoBetween
 
 ## API overview
 
-- `GET /api/zones`
-- `GET /api/zones/{zone}/records`
-- `POST /api/records`
-- `DELETE /api/records`
+All endpoints are provider-aware. If no `{provider}` segment is supplied, requests default to the local `Windows` provider.
 
-All write endpoints require a member of `DnsAdmins` or `Domain Admins`. The `POST` / `DELETE` endpoints support TXT records, which makes the API suitable as an ACME DNS-01 backend — see [Automated certificate issuance](#automated-certificate-issuance-acme-dns-01) above.
+- `GET    /api/providers`
+- `GET    /api/zones`
+- `GET    /api/{provider}/zones`
+- `GET    /api/zones/{zone}/records`
+- `GET    /api/{provider}/zones/{zone}/records`
+- `POST   /api/records`
+- `POST   /api/{provider}/records`
+- `DELETE /api/records`
+- `DELETE /api/{provider}/records`
+
+Write endpoints require the caller to be a member of one of the write roles for the targeted provider (see [Authentication and authorization](#authentication-and-authorization)). The `POST` / `DELETE` endpoints support TXT records, which makes the API suitable as an ACME DNS-01 backend — see [Automated certificate issuance](#automated-certificate-issuance-acme-dns-01) above.
+
+### Admin UI pages
+
+- `/`              — DNS tree (browse/edit zones and records)
+- `/settings`      — active providers, allowlists, auth/TLS settings (write-role gated)
+- `/history`       — audit history of write operations (write-role gated)
+- `/health-status` — on-demand health check results (write-role gated)
 
 Swagger:
 
@@ -200,7 +267,7 @@ Health:
 - `/health/live`
 - `/health/ready`
 
-Note: health endpoints are intentionally loopback-only (not remotely reachable).
+Note: health endpoints are intentionally loopback-only (not remotely reachable). When the configured cloud providers are enabled, their reachability is also reflected in `/health/ready`.
 
 ## Build and test
 
@@ -212,7 +279,7 @@ TEMP=/tmp TMP=/tmp dotnet build src/DnsGoBetween.Api/DnsGoBetween.Api.csproj -c 
 dotnet test tests/DnsGoBetween.Tests
 
 # MSI build (Windows)
-./scripts/build-installer.ps1 -Version 1.0.2 -Configuration Release
+./scripts/build-installer.ps1 -Version 1.3.8 -Configuration Release
 ```
 
 ## Release process
@@ -220,8 +287,8 @@ dotnet test tests/DnsGoBetween.Tests
 Tag with `v*` and push to trigger release workflow:
 
 ```bash
-git tag -a v1.0.2 -m "Release v1.0.2"
-git push origin v1.0.2
+git tag -a v1.3.8 -m "Release v1.3.8"
+git push origin v1.3.8
 ```
 
 The release workflow builds a Windows MSI and attaches it to the GitHub Release.
