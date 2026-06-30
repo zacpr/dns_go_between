@@ -104,7 +104,7 @@ else if (_error is not null)
             
             if (_zoneRecords.TryGetValue(zone.Name, out var records))
             {
-                hasMatchingRecords = records.Any(r => MatchesSearch(r.HostName) || MatchesSearch(r.Data));
+                hasMatchingRecords = records.Any(r => MatchesSearch(r.HostName) || MatchesSearch(r.DisplayName) || MatchesSearch(r.Data));
             }
             
             if (!zoneMatches && !hasMatchingRecords && !string.IsNullOrEmpty(_searchQuery))
@@ -125,22 +125,27 @@ else if (_error is not null)
                     }
                     else if (_zoneRecords.TryGetValue(zone.Name, out var zoneRecords))
                     {
-                        @foreach (var hostGroup in zoneRecords.GroupBy(r => r.HostName).OrderBy(g => g.Key))
+                        @foreach (var hostGroup in zoneRecords.GroupBy(r => r.DisplayName, StringComparer.OrdinalIgnoreCase).OrderBy(g => g.Key))
                         {
                             var hostKey = $"{zone.Name}|{hostGroup.Key}";
-                            var hostMatches = MatchesSearch(hostGroup.Key);
+                            var hostMatches = MatchesSearch(hostGroup.Key) || hostGroup.Any(r => MatchesSearch(r.HostName));
                             var matchingRecords = hostGroup.Where(r => MatchesSearch(r.Data) || string.IsNullOrEmpty(_searchQuery)).ToList();
-                            
+                            var hasFqdnDup = hostGroup.Any(r => r.HasFqdnHostName);
+
                             if (!hostMatches && matchingRecords.Count == 0 && !string.IsNullOrEmpty(_searchQuery))
                                 continue;
 
                             <div class="host-node indent @(hostMatches ? "search-highlight" : "")">
                                 <span class="host-toggle" @onclick="() => ToggleHostAsync(hostKey, matchingRecords.Any())">
                                     @(_expandedHosts.Contains(hostKey) ? "▼" : "▶") @hostGroup.Key
+                                    @if (hasFqdnDup)
+                                    {
+                                        <span class="badge badge-warning" title="One or more records under this host are stored with the zone suffix in their name (e.g. 'foo.example.com' inside zone 'example.com'). These answer queries for foo.example.com.example.com and are almost always unintended duplicates — expand to identify and delete them.">⚠ FQDN-stored</span>
+                                    }
                                 </span>
                                 @if (_expandedHosts.Contains(hostKey))
                                 {
-                                    @foreach (var rec in hostGroup.OrderBy(r => r.RecordType.ToString()))
+                                    @foreach (var rec in hostGroup.OrderBy(r => r.RecordType.ToString()).ThenBy(r => r.HostName, StringComparer.OrdinalIgnoreCase))
                                     {
                                         var recordMatches = MatchesSearch(rec.Data);
                                         if (!recordMatches && !string.IsNullOrEmpty(_searchQuery))
@@ -150,6 +155,10 @@ else if (_error is not null)
                                             <span class="record-icon">@GetRecordTypeIcon(rec.RecordType)</span>
                                             <span class="badge-type @GetRecordTypeCssClass(rec.RecordType)">@rec.RecordType</span>
                                             <span class="record-data">@rec.Data</span>
+                                            @if (rec.HasFqdnHostName)
+                                            {
+                                                <span class="badge badge-warning" title="Stored as '@rec.HostName' inside zone '@rec.ZoneName' — answers queries for @rec.HostName.@rec.ZoneName, almost certainly a duplicate.">⚠ stored as @rec.HostName</span>
+                                            }
                                             <button class="btn-copy" title="Copy record data" @onclick="() => CopyToClipboardAsync(rec.Data)">📋</button>
                                             <span class="text-muted">TTL:@rec.TimeToLive</span>
                                             @if (_isAdmin)

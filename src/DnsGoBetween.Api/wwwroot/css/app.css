@@ -422,6 +422,18 @@ h1 { font-size: 1.4em; margin-bottom: 20px; color: #0078d4; }
     font-weight: 600;
 }
 
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+    margin-left: 6px;
+    cursor: help;
+}
+
+.dns-page.theme-dark .badge-warning {
+    background: #78350f;
+    color: #fde68a;
+}
+
 .badge-type {
     font-size: 0.72em;
     background: #0078d4;
