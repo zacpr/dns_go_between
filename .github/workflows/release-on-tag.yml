@@ -45,6 +45,14 @@ jobs:
 
           "RELEASE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
+          # Mark as pre-release when:
+          #   - workflow_dispatch was invoked with prerelease=true, OR
+          #   - the tag is a semver pre-release (contains "-", e.g. v1.3.9-beta.1, v1.3.9-rc.1).
+          $dispatchPrerelease = "${{ inputs.prerelease }}" -eq "true"
+          $tagIsPrerelease = $env:GITHUB_REF_NAME -match "-"
+          $isPrerelease = $dispatchPrerelease -or $tagIsPrerelease
+          "RELEASE_IS_PRERELEASE=$($isPrerelease.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -77,6 +85,6 @@ jobs:
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           target_commitish: ${{ github.sha }}
-          prerelease: ${{ inputs.prerelease || false }}
+          prerelease: ${{ env.RELEASE_IS_PRERELEASE == 'true' }}
           generate_release_notes: true
           files: ${{ env.MSI_PATH }}
