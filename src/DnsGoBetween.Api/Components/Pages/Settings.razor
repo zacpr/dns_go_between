@@ -30,11 +30,29 @@
         <div class="card-body">
             <dl class="row mb-0">
                 <dt class="col-sm-4">Allowed Zones</dt>
-                <dd class="col-sm-8">@(string.Join(", ", DnsOptions.CurrentValue.AllowedZones.DefaultIfEmpty("None")))</dd>
-                
+                <dd class="col-sm-8">
+                    @if (DnsOptions.CurrentValue.AllowedZones.Length == 0)
+                    {
+                        <em>All zones (no restriction)</em>
+                    }
+                    else
+                    {
+                        @string.Join(", ", DnsOptions.CurrentValue.AllowedZones)
+                    }
+                </dd>
+
                 <dt class="col-sm-4">Allowed Record Types</dt>
-                <dd class="col-sm-8">@(string.Join(", ", DnsOptions.CurrentValue.AllowedRecordTypes.DefaultIfEmpty("None")))</dd>
-                
+                <dd class="col-sm-8">
+                    @if (DnsOptions.CurrentValue.AllowedRecordTypes.Length == 0)
+                    {
+                        <em>All types (no restriction)</em>
+                    }
+                    else
+                    {
+                        @string.Join(", ", DnsOptions.CurrentValue.AllowedRecordTypes.Distinct(StringComparer.OrdinalIgnoreCase))
+                    }
+                </dd>
+
                 <dt class="col-sm-4">Command Timeout</dt>
                 <dd class="col-sm-8">@DnsOptions.CurrentValue.CommandTimeoutSeconds seconds</dd>
             </dl>
