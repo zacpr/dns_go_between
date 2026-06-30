@@ -6,6 +6,23 @@
     "test:browser:headed": "playwright test ui-tests/dns-manager.spec.js --headed"
   },
   "devDependencies": {
-    "@playwright/test": "^1.54.2"
-  }
+    "@playwright/test": "^1.59.1"
+  },
+  "version": "1.0.0",
+  "description": "DNS Go-Between is a Windows-hosted DNS management service that exposes Windows DNS Server operations through a secure REST API and Blazor UI.",
+  "main": "playwright.config.js",
+  "directories": {
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zacpr/dns_go_between.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zacpr/dns_go_between/issues"
+  },
+  "homepage": "https://github.com/zacpr/dns_go_between#readme"
 }

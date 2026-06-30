@@ -16,5 +16,7 @@ module.exports = defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    // Use the system's built-in Microsoft Edge browser
+    channel: 'msedge',
   },
 });
