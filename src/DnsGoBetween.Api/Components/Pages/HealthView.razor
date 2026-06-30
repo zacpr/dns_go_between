@@ -1,0 +1,95 @@
+@page "/health-status"
+@using Microsoft.Extensions.Diagnostics.HealthChecks
+@inject HealthCheckService HealthCheckService
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "WritePolicy")]
+
+<PageTitle>System Health</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">❤️ System Health</h2>
+        <button class="btn btn-outline-primary btn-sm" @onclick="RefreshHealthAsync" disabled="@_isRefreshing">
+            @if (_isRefreshing) { <span>⏳ Refreshing...</span> }
+            else { <span>🔄 Refresh Status</span> }
+        </button>
+    </div>
+    
+    @if (_report is null)
+    {
+        <p>Loading health status...</p>
+    }
+    else
+    {
+        <div class="row mt-4">
+            @foreach (var entry in _report.Entries)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">@FormatCheckName(entry.Key)</span>
+                            @if (entry.Value.Status == HealthStatus.Healthy)
+                            {
+                                <span class="badge bg-success">Healthy</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">@entry.Value.Status</span>
+                            }
+                        </div>
+                        <div class="card-body">
+                            <dl class="row mb-0">
+                                <dt class="col-sm-5 text-muted">Status</dt>
+                                <dd class="col-sm-7 @(entry.Value.Status == HealthStatus.Healthy ? "text-success" : "text-danger")">
+                                    @(entry.Value.Description ?? entry.Value.Status.ToString())
+                                </dd>
+                                
+                                <dt class="col-sm-5 text-muted">Latency</dt>
+                                <dd class="col-sm-7">@Math.Round(entry.Value.Duration.TotalMilliseconds, 1) ms</dd>
+                                
+                                @if (entry.Value.Exception is not null)
+                                {
+                                    <dt class="col-sm-5 text-danger">Exception</dt>
+                                    <dd class="col-sm-7 text-danger small">@entry.Value.Exception.Message</dd>
+                                }
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private HealthReport? _report;
+    private bool _isRefreshing;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHealthAsync();
+    }
+
+    private async Task RefreshHealthAsync()
+    {
+        _isRefreshing = true;
+        await LoadHealthAsync();
+        _isRefreshing = false;
+    }
+
+    private async Task LoadHealthAsync()
+    {
+        _report = await HealthCheckService.CheckHealthAsync();
+    }
+
+    private string FormatCheckName(string key)
+    {
+        return key switch
+        {
+            "dns-cmdlet-readiness" => "Windows DNS Server (PowerShell)",
+            "cloudflare-api-readiness" => "Cloudflare API Connection",
+            "aws-route53-readiness" => "AWS Route53 API Connection",
+            "namecheap-api-readiness" => "Namecheap API Connection",
+            _ => key
+        };
+    }
+}

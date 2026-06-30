@@ -1,0 +1,66 @@
+@page "/settings"
+@using DnsGoBetween.Core.Configuration
+@using Microsoft.Extensions.Options
+@inject IOptionsMonitor<DnsOptions> DnsOptions
+@inject IOptionsMonitor<AuthOptions> AuthOptions
+@inject IOptionsMonitor<TlsOptions> TlsOptions
+@inject DnsGoBetween.Core.Interfaces.IDnsRecordService DnsService
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "WritePolicy")]
+
+<PageTitle>Settings</PageTitle>
+
+<div class="container mt-4">
+    <h2>⚙️ Settings</h2>
+    <div class="alert alert-info">Note: Changes to configuration must be made in <code>appsettings.json</code>. Some changes require a service restart to take effect.</div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header fw-bold">Active DNS Providers</div>
+        <div class="card-body">
+            <ul class="mb-0">
+                @foreach (var provider in DnsService.GetAvailableProviders())
+                {
+                    <li><strong>@provider</strong></li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header fw-bold">DNS Configuration</div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Allowed Zones</dt>
+                <dd class="col-sm-8">@(string.Join(", ", DnsOptions.CurrentValue.AllowedZones.DefaultIfEmpty("None")))</dd>
+                
+                <dt class="col-sm-4">Allowed Record Types</dt>
+                <dd class="col-sm-8">@(string.Join(", ", DnsOptions.CurrentValue.AllowedRecordTypes.DefaultIfEmpty("None")))</dd>
+                
+                <dt class="col-sm-4">Command Timeout</dt>
+                <dd class="col-sm-8">@DnsOptions.CurrentValue.CommandTimeoutSeconds seconds</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header fw-bold">Authentication Settings</div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Basic Auth Enabled</dt>
+                <dd class="col-sm-8">@AuthOptions.CurrentValue.EnableBasicAuthentication</dd>
+                
+                <dt class="col-sm-4">Basic Auth Failure Limit</dt>
+                <dd class="col-sm-8">@AuthOptions.CurrentValue.BasicAuthenticationFailureLimit</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header fw-bold">TLS Settings</div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4">HTTPS Port</dt>
+                <dd class="col-sm-8">@TlsOptions.CurrentValue.HttpsPort</dd>
+            </dl>
+        </div>
+    </div>
+</div>

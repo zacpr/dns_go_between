@@ -1,0 +1,55 @@
+@page "/history"
+@using DnsGoBetween.Core.Interfaces
+@inject IAuditHistoryStore HistoryStore
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "WritePolicy")]
+
+<PageTitle>Audit History</PageTitle>
+
+<div class="container mt-4">
+    <h2>📜 Audit History</h2>
+    
+    <table class="table table-striped table-hover mt-3 shadow-sm rounded">
+        <thead class="table-dark">
+            <tr>
+                <th>Time (UTC)</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Target / IP</th>
+                <th>Status</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!_entries.Any())
+            {
+                <tr><td colspan="6" class="text-center text-muted">No history found.</td></tr>
+            }
+            else
+            {
+                @foreach (var entry in _entries.OrderByDescending(e => e.TimestampUtc))
+                {
+                    <tr>
+                        <td class="text-nowrap">@entry.TimestampUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td>@entry.User</td>
+                        <td><span class="badge bg-secondary">@entry.Action</span></td>
+                        <td><code>@entry.Target</code></td>
+                        <td>
+                            @if (entry.Success) { <span class="badge bg-success">Success</span> }
+                            else { <span class="badge bg-danger">Failure</span> }
+                        </td>
+                        <td>@entry.ErrorMessage</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private IReadOnlyList<AuditHistoryEntry> _entries = Array.Empty<AuditHistoryEntry>();
+
+    protected override void OnInitialized()
+    {
+        _entries = HistoryStore.GetEntries();
+    }
+}
