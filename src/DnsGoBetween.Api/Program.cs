@@ -178,7 +178,55 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "DNS Go-Between API", Version = "v1" });
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title       = "DNS Go-Between API",
+        Version     = "v1",
+        Description = """
+            REST API for safe, audited management of DNS records across multiple providers
+            (Microsoft Windows DNS Server, Cloudflare, AWS Route 53, Namecheap).
+
+            **Authentication.** All endpoints require credentials. Two schemes are supported
+            depending on the deployment:
+
+            - **Basic Auth** — credentials configured in `appsettings.json` under the `BasicAuth`
+              section. Send `Authorization: Basic base64(user:password)`.
+            - **Windows / Negotiate** — used automatically when the service runs domain-joined
+              and the client supports SPNEGO (typical for the bundled web UI).
+
+            **Authorization.** Read endpoints require the *ReadPolicy*; write endpoints (POST/DELETE)
+            additionally require the appropriate per-provider write role. Unauthorized callers receive
+            a `403` with a `ProblemDetails` body (the same `correlationId` is also written to the
+            audit log for traceability).
+
+            **Provider routing.** Endpoints accept an optional `{provider}` path segment
+            (`Windows`, `Cloudflare`, `Route53`, `Namecheap`). Omitting it defaults to `Windows`
+            for backward compatibility with v1.0.x clients.
+
+            **Safety.** Deletions require an exact-match payload (zone + host + type + data + TTL)
+            to guard against accidental wildcard removal. All write attempts — successful and failed —
+            are recorded in the audit log with the caller's identity and a correlation ID.
+            """,
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        {
+            Name = "DNS Go-Between",
+            Url  = new Uri("https://github.com/zacpr/dns_go_between")
+        },
+        License = new Microsoft.OpenApi.Models.OpenApiLicense
+        {
+            Name = "See repository",
+            Url  = new Uri("https://github.com/zacpr/dns_go_between/blob/main/README.md")
+        }
+    });
+
+    // Pull <summary>/<remarks>/<param>/<response> tags out of the compiled XML doc file
+    // for the Api assembly. Wrapped in a guard so missing-XML doesn't break startup
+    // (e.g. when running tests with a stripped publish output).
+    var xmlFile = Path.Combine(AppContext.BaseDirectory, $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml");
+    if (File.Exists(xmlFile))
+    {
+        c.IncludeXmlComments(xmlFile, includeControllerXmlComments: true);
+    }
 });
 
 // ── Health checks ─────────────────────────────────────────────────────────────

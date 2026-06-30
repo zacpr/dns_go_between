@@ -3,6 +3,14 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!--
+      Emit the XML documentation file so Swashbuckle's IncludeXmlComments()
+      can surface the <summary>/<remarks>/<param>/<response> tags in Swagger UI.
+      Suppress CS1591 ("Missing XML comment for publicly visible type") so we
+      aren't forced to document every internal helper just to ship the docs.
+    -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="8.0.0" />
